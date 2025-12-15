@@ -4,8 +4,8 @@
   --muted:#475569;
   --border:#e2e8f0;
   --card:#f8fafc;
-  --primary:#166534;   /* calm green */
-  --accent:#0f766e;    /* muted teal */
+  --primary:#166534;
+  --accent:#0f766e;
 }
 
 *{box-sizing:border-box}
@@ -16,6 +16,7 @@ body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   line-height:1.6;
 }
+
 header, main, footer{
   max-width:980px;
   margin:0 auto;
@@ -44,7 +45,7 @@ h1{font-size:32px; margin:8px 0 10px}
 h2{font-size:20px; margin:0 0 8px}
 p{margin:0 0 12px}
 
-/* Hub cards */
+/* Cards */
 .cards{
   display:grid;
   grid-template-columns:1fr;
@@ -60,12 +61,24 @@ p{margin:0 0 12px}
 .card a{color:var(--text); text-decoration:none}
 .card a:hover{color:var(--primary); text-decoration:underline}
 
-.card-blurb{color:var(--muted); margin:6px 0 10px}
-.card-tags{
-  color:var(--muted);
-  font-size:13px;
-  margin:0 0 12px;
+.card-blurb{color:var(--muted); margin:6px 0 12px}
+
+/* Whole-card clickable support */
+.card-link{position:relative}
+.card-hit{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border-radius:inherit;
 }
+
+/* Keep real links above the overlay so they still work */
+.card-title-link,
+.read-more{
+  position:relative;
+  z-index:2;
+}
+
 .read-more{
   display:inline-block;
   padding:8px 12px;
@@ -77,30 +90,37 @@ p{margin:0 0 12px}
 }
 .read-more:hover{filter:brightness(0.95)}
 
-/* styles.css: ADD this (or equivalent) */
-.search-wrap { position: relative; }
-.search-results {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-top: none;
-  border-radius: 0 0 10px 10px;
-  overflow: hidden;
-  display: none;
+/* Search autocomplete dropdown (base.html uses .search-wrap + .search-results) */
+.search-wrap{position:relative;margin-top:10px}
+.search{
+  width:100%;
+  padding:10px 12px;
+  font-size:16px;
+  border:1px solid var(--border);
+  border-radius:10px;
 }
-.search-results.open { display: block; }
-.search-item {
-  padding: 10px 12px;
-  cursor: pointer;
-  border-top: 1px solid #eee;
+.search-results{
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
+  z-index:50;
+  background:#fff;
+  border:1px solid var(--border);
+  border-top:none;
+  border-radius:0 0 10px 10px;
+  overflow:hidden;
+  display:none;
 }
-.search-item:first-child { border-top: none; }
-.search-item:hover, .search-item.active { background: #f4f6f8; }
-.search-item .t { font-weight: 600; }
-.search-item .d { font-size: 0.92rem; opacity: 0.85; margin-top: 2px; }
-.search-empty { padding: 10px 12px; opacity: 0.8; }
-
+.search-results.open{display:block}
+.search-item{
+  padding:10px 12px;
+  cursor:pointer;
+  border-top:1px solid var(--border);
+}
+.search-item:first-child{border-top:none}
+.search-item:hover,
+.search-item.active{background:#f4f6f8}
+.search-item .t{font-weight:600}
+.search-item .d{font-size:0.92rem; opacity:0.85; margin-top:2px}
+.search-empty{padding:10px 12px; opacity:0.8}
