@@ -1,20 +1,31 @@
 #!/usr/bin/env python3
 # build_pages.py
 # GrizzlyGreens static generator (GitHub Pages friendly)
-# - base.html owns ALL chrome (nav/search/footer/scripts)
-# - This script ONLY injects page bodies into {{CONTENT}}
-# - Reads pages_json/*.json for article pages
-# - Reads each hub's filenames.csv for hub index cards
-# - Writes:
+#
+# Contract (hard rules):
+# - base.html owns ALL chrome (nav/search/footer/scripts). This script MUST NOT inject nav/search/footer.
+# - This script only fills tokens: {{TITLE}}, {{DESCRIPTION}}, {{CANONICAL}}, {{GTAG}}, {{CONTENT}} (or {{CONTENT_HTML}})
+# - Generates:
 #   - /index.html
 #   - /<hub_slug>/index.html
 #   - /<hub_slug>/<filename>.html
 #   - /sitemap.xml
+#   - /search-index.json (for on-site autocomplete search)
 #
-# Optional env vars:
-#   OUTPUT_DIR=dist        (write output under dist/)
-#   VERBOSE=1              (print build logs)
-#   GTAG='<script>...</script>'  (raw gtag snippet inserted into {{GTAG}})
+# Inputs:
+# - base.html (repo root)
+# - pages_json/*.json (article objects)
+# - <hub_slug>/filenames.csv (hub index cards; header: title,filename)
+#
+# Env options:
+# - OUTPUT_DIR=dist     -> write output under dist/ (otherwise write into repo root)
+# - VERBOSE=1           -> print build logs
+# - GTAG='<script>...</script>'  -> raw gtag snippet inserted into {{GTAG}}
+# - GTAG_FILE=gtag.html -> alternatively load gtag snippet from a file (repo root)
+#
+# Notes:
+# - Search index is site-local; it never leaves the site. It powers /search.js fetching /search-index.json.
+# - This script does not create search.js; you should add that file yourself.
 
 from __future__ import annotations
 
@@ -32,7 +43,9 @@ SITE_BASE = f"https://{SITE_DOMAIN}"
 
 BASE_HTML_PATH = Path("base.html")
 PAGES_JSON_DIR = Path("pages_json")
+
 SITEMAP_FILENAME = "sitemap.xml"
+SEARCH_INDEX_FILENAME = "search-index.json"
 
 OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "").strip())
 VERBOSE = os.environ.get("VERBOSE", "0").strip() == "1"
@@ -50,16 +63,16 @@ def log(msg: str) -> None:
     if VERBOSE:
         print(msg)
 
+def out_path(rel: str) -> Path:
+    rel = (rel or "").lstrip("/")
+    return (OUTPUT_DIR / rel) if str(OUTPUT_DIR) else Path(rel)
+
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="\n")
-
-def out_path(rel: str) -> Path:
-    rel = rel.lstrip("/")
-    return (OUTPUT_DIR / rel) if str(OUTPUT_DIR) else Path(rel)
 
 def normalize_slug(s: str) -> str:
     return (s or "").strip().strip("/")
@@ -78,21 +91,30 @@ def build_output_path(hub_slug: str, filename: str) -> str:
     filename = ensure_html_filename(filename)
     return f"{hub_slug}/{filename}"
 
-def build_canonical(output_path: str) -> str:
-    return f"{SITE_BASE}/{(output_path or '').lstrip('/')}"
+def build_canonical(output_path_str: str) -> str:
+    return f"{SITE_BASE}/{(output_path_str or '').lstrip('/')}"
 
-def template_render(base_html: str, title: str, description: str, canonical: str, content_html: str) -> str:
-    # IMPORTANT: base.html already contains header/search/footer, so this only injects CONTENT.
-    # Also replaces GTAG so {{GTAG}} never leaks to production.
-    gtag = os.environ.get("GTAG", "").rstrip()
+def load_gtag_snippet() -> str:
+    raw = os.environ.get("GTAG", "")
+    if raw.strip():
+        return raw.rstrip()
 
+    gtag_file = os.environ.get("GTAG_FILE", "").strip()
+    if gtag_file:
+        p = Path(gtag_file)
+        if p.exists():
+            return read_text(p).rstrip()
+
+    return ""
+
+def template_render(base_html: str, title: str, description: str, canonical: str, content_html: str, gtag: str) -> str:
     html = base_html
     html = html.replace("{{TITLE}}", escape(title or ""))
     html = html.replace("{{DESCRIPTION}}", escape(description or ""))
     html = html.replace("{{CANONICAL}}", escape(canonical or ""))
-    html = html.replace("{{GTAG}}", gtag)
-    html = html.replace("{{CONTENT_HTML}}", content_html)
-    html = html.replace("{{CONTENT}}", content_html)
+    html = html.replace("{{GTAG}}", gtag or "")
+    html = html.replace("{{CONTENT_HTML}}", content_html or "")
+    html = html.replace("{{CONTENT}}", content_html or "")
     return html
 
 def card_html(title: str, blurb: str, href: str, button_text: str = "Open") -> str:
@@ -105,27 +127,27 @@ def card_html(title: str, blurb: str, href: str, button_text: str = "Open") -> s
 """.strip()
 
 def homepage_body() -> str:
-    hub_cards = []
-    for slug, title, desc in HUBS:
-        hub_cards.append(card_html(title, desc, f"/{slug}/", "Open hub"))
+    cards: List[str] = []
+    for slug, hub_title, desc in HUBS:
+        cards.append(card_html(hub_title, desc, f"/{slug}/", "Open hub"))
 
     return f"""
 <header class="hero">
   <h1>{escape(SITE_NAME)}</h1>
-  <p class="subtitle">Fast, practical lawn and yard knowledge. No fluff. Built to scale cleanly.</p>
+  <p class="subtitle">Fast, practical lawn and yard knowledge. No fluff.</p>
 </header>
 
 <section class="grid">
-  {"".join(hub_cards)}
+  {"".join(cards)}
 </section>
 """.strip()
 
 def hub_index_body(hub_slug: str, hub_title: str, hub_desc: str, items: List[Tuple[str, str]]) -> str:
-    cards = []
-    for title, filename in items:
-        filename = ensure_html_filename(filename)
-        href = f"/{hub_slug}/{filename}"
-        cards.append(card_html(title, f"Practical guide in {hub_title.lower()}.", href, "Open"))
+    cards: List[str] = []
+    for t, fn in items:
+        fn2 = ensure_html_filename(fn)
+        href = f"/{hub_slug}/{fn2}"
+        cards.append(card_html(t, f"Practical guide in {hub_title.lower()}.", href, "Open"))
 
     return f"""
 <header class="hub-hero">
@@ -170,13 +192,13 @@ def normalize_article_obj(obj: Dict) -> Optional[Dict]:
     hub_slug = normalize_slug(obj.get("hub_slug") or "")
     filename = (obj.get("filename") or "").strip()
 
-    output_path = (obj.get("output_path") or obj.get("outputPath") or "").strip().lstrip("/")
-    if not filename and output_path:
-        filename = output_path.split("/")[-1]
+    output_path_old = (obj.get("output_path") or obj.get("outputPath") or "").strip().lstrip("/")
+    if not filename and output_path_old:
+        filename = output_path_old.split("/")[-1]
 
     if not hub_slug:
-        if output_path and "/" in output_path:
-            hub_slug = normalize_slug(output_path.split("/")[0])
+        if output_path_old and "/" in output_path_old:
+            hub_slug = normalize_slug(output_path_old.split("/")[0])
         else:
             return None
 
@@ -184,8 +206,8 @@ def normalize_article_obj(obj: Dict) -> Optional[Dict]:
         return None
 
     filename = ensure_html_filename(filename)
-    output_path2 = build_output_path(hub_slug, filename)
-    canonical2 = build_canonical(output_path2)
+    output_path_new = build_output_path(hub_slug, filename)
+    canonical = build_canonical(output_path_new)
 
     title = (obj.get("title") or "").strip()
     description = (obj.get("description") or "").strip()
@@ -200,8 +222,8 @@ def normalize_article_obj(obj: Dict) -> Optional[Dict]:
     return {
         "hub_slug": hub_slug,
         "filename": filename,
-        "output_path": output_path2,
-        "canonical": canonical2,
+        "output_path": output_path_new,
+        "canonical": canonical,
         "title": title,
         "description": description,
         "content_html": content_html.strip(),
@@ -220,40 +242,55 @@ def write_sitemap(urls: List[str]) -> None:
     ])
     write_text(out_path(SITEMAP_FILENAME), xml)
 
+def write_search_index(items: List[Dict[str, str]]) -> None:
+    payload = {
+        "items": items,
+        "generated": str(date.today()),
+    }
+    write_text(out_path(SEARCH_INDEX_FILENAME), json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
+
 def main() -> int:
     if not BASE_HTML_PATH.exists():
         raise SystemExit("Missing base.html in repo root.")
 
     base_html = read_text(BASE_HTML_PATH)
-    urls_for_sitemap: List[str] = []
+    gtag = load_gtag_snippet()
 
-    # 1) Homepage
+    urls_for_sitemap: List[str] = []
+    search_items: List[Dict[str, str]] = []
+
+    # Homepage
+    home_url = f"{SITE_BASE}/"
     home_html = template_render(
         base_html=base_html,
         title=SITE_NAME,
-        description="Practical lawn, weed, irrigation, soil, and yard safety guides built to scale cleanly.",
-        canonical=f"{SITE_BASE}/",
+        description="Practical lawn, weed, irrigation, soil, and yard safety guides.",
+        canonical=home_url,
         content_html=homepage_body(),
+        gtag=gtag,
     )
     write_text(out_path("index.html"), home_html)
-    urls_for_sitemap.append(f"{SITE_BASE}/")
-    log("Built homepage index.html")
+    urls_for_sitemap.append(home_url)
+    search_items.append({"t": SITE_NAME, "u": "/", "d": "Homepage"})
 
-    # 2) Hub index pages
-    for slug, title, desc in HUBS:
+    # Hub index pages
+    for slug, hub_title, hub_desc in HUBS:
         items = read_hub_filenames_csv(slug)
+        hub_url = f"{SITE_BASE}/{slug}/"
         hub_html = template_render(
             base_html=base_html,
-            title=f"{title} - {SITE_NAME}",
-            description=desc,
-            canonical=f"{SITE_BASE}/{slug}/",
-            content_html=hub_index_body(slug, title, desc, items),
+            title=f"{hub_title} - {SITE_NAME}",
+            description=hub_desc,
+            canonical=hub_url,
+            content_html=hub_index_body(slug, hub_title, hub_desc, items),
+            gtag=gtag,
         )
         write_text(out_path(f"{slug}/index.html"), hub_html)
-        urls_for_sitemap.append(f"{SITE_BASE}/{slug}/")
+        urls_for_sitemap.append(hub_url)
+        search_items.append({"t": hub_title, "u": f"/{slug}/", "d": hub_desc})
         log(f"Built hub: {slug}/index.html")
 
-    # 3) Article pages from pages_json/*.json
+    # Article pages
     raw_objs = load_article_json_files()
     built = 0
     skipped = 0
@@ -270,22 +307,23 @@ def main() -> int:
             description=a["description"],
             canonical=a["canonical"],
             content_html=a["content_html"],
+            gtag=gtag,
         )
         write_text(out_path(a["output_path"]), page_html)
         urls_for_sitemap.append(a["canonical"])
+        search_items.append({"t": a["title"], "u": f'/{a["output_path"]}', "d": a["description"]})
         built += 1
 
-    # 4) Sitemap
     write_sitemap(urls_for_sitemap)
+    write_search_index(search_items)
 
     if VERBOSE:
         print(f"Built hubs={len(HUBS)} articles={built} skipped={skipped} output_dir='{OUTPUT_DIR or ''}'")
     else:
-        # Only talk when something is wrong
         if built == 0 and raw_objs:
-            print("Built 0 articles. JSON objects are missing required fields: hub_slug, filename, title, content_html.")
+            print("Built 0 articles. JSON missing required fields: hub_slug, filename, title, content_html.")
         elif not raw_objs:
-            print("No pages_json/*.json found. Built homepage, hubs, sitemap only.")
+            print("No pages_json/*.json found. Built homepage, hubs, sitemap, search index only.")
 
     return 0
 

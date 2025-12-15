@@ -19,8 +19,7 @@
   <meta property="og:url" content="https://grizzlygreens.net/tools-safety/">
 
   <!-- Google tag -->
-  <!-- PASTE YOUR REAL GTAG SCRIPT HERE -->
-   <!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-MXR7KVMW56"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -32,30 +31,36 @@
 </head>
 
 <body>
+  <header class="site-header">
+    <nav class="nav">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/lawn-basics/" class="nav-link">Lawn &amp; Grass Basics</a>
+      <a href="/weeds-pests/" class="nav-link">Weeds, Pests &amp; Disease</a>
+      <a href="/watering-irrigation/" class="nav-link">Watering, Irrigation &amp; Drainage</a>
+      <a href="/soil-fertilizer/" class="nav-link">Soil, Fertilizer &amp; Amendments</a>
+      <a href="/tools-safety/" class="nav-link">Tools &amp; Yard Safety</a>
+    </nav>
 
-<header class="site-header">
-  <nav class="nav">
-    <a href="/" class="nav-link">Home</a>
-    <a href="/lawn-basics/" class="nav-link">Lawn &amp; Grass Basics</a>
-    <a href="/weeds-pests/" class="nav-link">Weeds, Pests &amp; Disease</a>
-    <a href="/watering-irrigation/" class="nav-link">Watering, Irrigation &amp; Drainage</a>
-    <a href="/soil-fertilizer/" class="nav-link">Soil, Fertilizer &amp; Amendments</a>
-    <a href="/tools-safety/" class="nav-link">Tools &amp; Yard Safety</a>
-  </nav>
+    <!-- On-site search (autocomplete; never leaves your site) -->
+    <div class="search-wrap" role="search">
+      <input
+        id="siteSearch"
+        class="search"
+        type="search"
+        placeholder="Search GrizzlyGreens..."
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-label="Search GrizzlyGreens"
+        aria-expanded="false"
+        aria-controls="searchResults"
+      >
+      <div id="searchResults" class="search-results" role="listbox" aria-label="Search results"></div>
+    </div>
+  </header>
 
-  <div class="search-wrap">
-    <input
-      id="siteSearch"
-      class="search"
-      type="search"
-      placeholder="Search GrizzlyGreens..."
-      autocomplete="off"
-    >
-  </div>
-</header>
-
-<main class="container">
-  <header class="hub-hero">
+  <main class="container">
+    <header class="hub-hero">
   <h1>Tools, Equipment, &amp; Yard Safety</h1>
   <p class="subtitle">Tools that matter, maintenance, and safety rules that prevent dumb injuries.</p>
 </header>
@@ -463,36 +468,19 @@
   <a class="btn secondary" href="/tools-safety/when-hiring-help-is-the-safer-option.html">Open</a>
 </article>
 </section>
-</main>
+  </main>
 
-<footer class="site-footer">
-  <div class="footer-links">
-    <a href="/about.html">About</a>
-    <a href="/disclaimer.html">Disclaimer</a>
-    <a href="/privacy.html">Privacy Policy</a>
-    <a href="/sitemap.xml">Sitemap</a>
-  </div>
-  <div class="footer-copy">© 2025 GrizzlyGreens.net</div>
-</footer>
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="/about.html">About</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/sitemap.xml">Sitemap</a>
+    </div>
+    <div class="footer-copy">© 2025 GrizzlyGreens.net</div>
+  </footer>
 
-<script>
-(function () {
-  const q = document.getElementById("siteSearch");
-  if (!q) return;
-
-  q.addEventListener("keydown", function (e) {
-    if (e.key !== "Enter") return;
-    const term = (q.value || "").trim();
-    if (!term) return;
-
-    const url =
-      "https://www.google.com/search?q=" +
-      encodeURIComponent("site:grizzlygreens.net " + term);
-
-    window.open(url, "_blank");
-  });
-})();
-</script>
-
+  <!-- This must exist at /search.js in your repo root -->
+  <script src="/search.js" defer></script>
 </body>
 </html>

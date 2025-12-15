@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>GrizzlyGreens</title>
-  <meta name="description" content="Practical lawn, weed, irrigation, soil, and yard safety guides built to scale cleanly.">
+  <meta name="description" content="Practical lawn, weed, irrigation, soil, and yard safety guides.">
   <link rel="canonical" href="https://grizzlygreens.net/">
 
   <link rel="stylesheet" href="/styles.css">
@@ -15,12 +15,11 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="GrizzlyGreens">
-  <meta property="og:description" content="Practical lawn, weed, irrigation, soil, and yard safety guides built to scale cleanly.">
+  <meta property="og:description" content="Practical lawn, weed, irrigation, soil, and yard safety guides.">
   <meta property="og:url" content="https://grizzlygreens.net/">
 
   <!-- Google tag -->
-  <!-- PASTE YOUR REAL GTAG SCRIPT HERE -->
-   <!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-MXR7KVMW56"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -32,32 +31,38 @@
 </head>
 
 <body>
+  <header class="site-header">
+    <nav class="nav">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/lawn-basics/" class="nav-link">Lawn &amp; Grass Basics</a>
+      <a href="/weeds-pests/" class="nav-link">Weeds, Pests &amp; Disease</a>
+      <a href="/watering-irrigation/" class="nav-link">Watering, Irrigation &amp; Drainage</a>
+      <a href="/soil-fertilizer/" class="nav-link">Soil, Fertilizer &amp; Amendments</a>
+      <a href="/tools-safety/" class="nav-link">Tools &amp; Yard Safety</a>
+    </nav>
 
-<header class="site-header">
-  <nav class="nav">
-    <a href="/" class="nav-link">Home</a>
-    <a href="/lawn-basics/" class="nav-link">Lawn &amp; Grass Basics</a>
-    <a href="/weeds-pests/" class="nav-link">Weeds, Pests &amp; Disease</a>
-    <a href="/watering-irrigation/" class="nav-link">Watering, Irrigation &amp; Drainage</a>
-    <a href="/soil-fertilizer/" class="nav-link">Soil, Fertilizer &amp; Amendments</a>
-    <a href="/tools-safety/" class="nav-link">Tools &amp; Yard Safety</a>
-  </nav>
+    <!-- On-site search (autocomplete; never leaves your site) -->
+    <div class="search-wrap" role="search">
+      <input
+        id="siteSearch"
+        class="search"
+        type="search"
+        placeholder="Search GrizzlyGreens..."
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-label="Search GrizzlyGreens"
+        aria-expanded="false"
+        aria-controls="searchResults"
+      >
+      <div id="searchResults" class="search-results" role="listbox" aria-label="Search results"></div>
+    </div>
+  </header>
 
-  <div class="search-wrap">
-    <input
-      id="siteSearch"
-      class="search"
-      type="search"
-      placeholder="Search GrizzlyGreens..."
-      autocomplete="off"
-    >
-  </div>
-</header>
-
-<main class="container">
-  <header class="hero">
+  <main class="container">
+    <header class="hero">
   <h1>GrizzlyGreens</h1>
-  <p class="subtitle">Fast, practical lawn and yard knowledge. No fluff. Built to scale cleanly.</p>
+  <p class="subtitle">Fast, practical lawn and yard knowledge. No fluff.</p>
 </header>
 
 <section class="grid">
@@ -83,36 +88,19 @@
   <a class="btn secondary" href="/tools-safety/">Open hub</a>
 </article>
 </section>
-</main>
+  </main>
 
-<footer class="site-footer">
-  <div class="footer-links">
-    <a href="/about.html">About</a>
-    <a href="/disclaimer.html">Disclaimer</a>
-    <a href="/privacy.html">Privacy Policy</a>
-    <a href="/sitemap.xml">Sitemap</a>
-  </div>
-  <div class="footer-copy">© 2025 GrizzlyGreens.net</div>
-</footer>
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="/about.html">About</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/sitemap.xml">Sitemap</a>
+    </div>
+    <div class="footer-copy">© 2025 GrizzlyGreens.net</div>
+  </footer>
 
-<script>
-(function () {
-  const q = document.getElementById("siteSearch");
-  if (!q) return;
-
-  q.addEventListener("keydown", function (e) {
-    if (e.key !== "Enter") return;
-    const term = (q.value || "").trim();
-    if (!term) return;
-
-    const url =
-      "https://www.google.com/search?q=" +
-      encodeURIComponent("site:grizzlygreens.net " + term);
-
-    window.open(url, "_blank");
-  });
-})();
-</script>
-
+  <!-- This must exist at /search.js in your repo root -->
+  <script src="/search.js" defer></script>
 </body>
 </html>
