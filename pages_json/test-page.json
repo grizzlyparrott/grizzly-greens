@@ -1,8 +1,0 @@
-{
-  "hub_slug": "lawn-basics",
-  "slug": "test-page",
-  "title": "Test Page",
-  "description": "Test page to verify hub index generation.",
-  "card_blurb": "This is a short blurb that should appear on the Lawn and Grass Basics hub page.",
-  "content_html": "<h1>Test Page</h1><p>If you can see this, the generator works.</p>"
-}

@@ -1,461 +1,373 @@
+#!/usr/bin/env python3
 # build_pages.py
-# Generates:
-# - Article pages from pages_json/*.json
-# - Hub index pages (cards) from hub filenames.csv + whatever articles exist
-# - Root homepage index.html (hub cards)
-# - sitemap.xml (only canonical URLs)
-#
-# JSON expected per article (in pages_json/*.json):
-# {
-#   "hub_slug": "lawn-basics",
-#   "filename": "what-type-of-grass-do-i-have.html",
-#   "title": "What Type of Grass Do I Have",
-#   "description": "One-sentence meta description.",
-#   "card_blurb": "Short blurb for hub cards.",
-#   "tags": ["optional", "array"],
-#   "content_html": "<h1>...</h1><p>...</p>..."
-# }
+# GrizzlyGreens static generator (GitHub Pages friendly)
+# - Reads base.html template
+# - Reads pages_json/*.json for article content
+# - Reads each hub's filenames.csv for hub index cards
+# - Writes:
+#   - /index.html (homepage)
+#   - /<hub_slug>/index.html (hub pages)
+#   - /<hub_slug>/<filename>.html (article pages)
+#   - /sitemap.xml
 
 from __future__ import annotations
 
 import csv
-import hashlib
 import json
 import os
 from pathlib import Path
-from datetime import datetime, timezone
-from typing import Dict, List, Tuple, Optional
-
+from datetime import date
+from html import escape
+from typing import Dict, List, Optional, Tuple
 
 SITE_NAME = "GrizzlyGreens"
-SITE_DOMAIN = "https://grizzlygreens.net"
+SITE_DOMAIN = "grizzlygreens.net"
+SITE_BASE = f"https://{SITE_DOMAIN}"
 
-# Folder slugs you told me you use in the repo
-HUBS: List[Tuple[str, str]] = [
-    ("lawn-basics", "Lawn and Grass Basics"),
-    ("weeds-pests", "Weeds, Pests, & Lawn Diseases"),
-    ("watering-irrigation", "Watering, Irrigation, & Drainage"),
-    ("soil-fertilizer", "Soil, Fertilizer, & Amendments"),
-    ("tools-safety", "Tools, Equipment, & Yard Safety"),
+BASE_HTML_PATH = Path("base.html")
+PAGES_JSON_DIR = Path("pages_json")
+SITEMAP_PATH = Path("sitemap.xml")
+
+# Hubs: folder slug -> display title + short description
+HUBS = [
+    ("lawn-basics", "Lawn and Grass Basics", "Grass types, mowing basics, common problems, and practical fixes."),
+    ("weeds-pests", "Weeds, Pests, & Lawn Diseases", "Identification first, then control: weeds, insects, and common lawn diseases."),
+    ("watering-irrigation", "Watering, Irrigation, & Drainage", "Watering schedules, sprinkler setups, drainage issues, and fixes that work."),
+    ("soil-fertilizer", "Soil, Fertilizer, & Amendments", "Soil basics, nutrients, pH, and amendments that actually move the needle."),
+    ("tools-safety", "Tools, Equipment, & Yard Safety", "Tools that matter, maintenance, and safety rules that prevent dumb injuries."),
 ]
 
-REPO_ROOT = Path(__file__).resolve().parent
-PAGES_JSON_DIR = REPO_ROOT / "pages_json"
-BASE_HTML_PATH = REPO_ROOT / "base.html"
-STYLES_CSS_PATH = REPO_ROOT / "styles.css"
+# Footer links you already have in your template
+FOOTER_LINKS = [
+    ("/about.html", "About"),
+    ("/disclaimer.html", "Disclaimer"),
+    ("/privacy-policy.html", "Privacy Policy"),
+    ("/sitemap.xml", "Sitemap"),
+]
 
-
-def now_yyyy_mm_dd() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
+# ----------------------------
+# Helpers
+# ----------------------------
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
-
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="\n")
 
+def ensure_html_filename(name: str) -> str:
+    name = name.strip()
+    if not name.lower().endswith(".html"):
+        name += ".html"
+    return name
 
-def normalize_filename(fn: str) -> str:
-    fn = fn.strip()
-    if not fn:
-        return fn
-    if not fn.lower().endswith(".html"):
-        fn = fn + ".html"
-    return fn
+def build_output_path(hub_slug: str, filename: str) -> str:
+    hub_slug = hub_slug.strip().strip("/")
 
+    # if someone accidentally passes "hub/file.html", keep it but normalize
+    filename = filename.strip().lstrip("/")
+    if "/" in filename:
+        # already includes a folder
+        parts = filename.split("/")
+        filename = parts[-1]
 
-def hub_folder(hub_slug: str) -> Path:
-    return REPO_ROOT / hub_slug
+    filename = ensure_html_filename(filename)
+    return f"{hub_slug}/{filename}"
 
+def build_canonical(output_path: str) -> str:
+    output_path = output_path.lstrip("/")
+    return f"{SITE_BASE}/{output_path}"
 
-def url_for(hub_slug: str, filename: str) -> str:
-    filename = normalize_filename(filename)
-    return f"/{hub_slug}/{filename}"
-
-
-def canonical_for(hub_slug: str, filename: str) -> str:
-    return f"{SITE_DOMAIN}{url_for(hub_slug, filename)}"
-
-
-def safe_md5_int(s: str) -> int:
-    h = hashlib.md5(s.encode("utf-8")).hexdigest()
-    return int(h[:8], 16)
-
-
-def load_hub_filenames_csv(hub_slug: str) -> List[Tuple[str, str]]:
-    """
-    Returns list of (title, filename) from /{hub_slug}/filenames.csv
-    """
-    path = hub_folder(hub_slug) / "filenames.csv"
-    if not path.exists():
-        return []
-    out: List[Tuple[str, str]] = []
-    with path.open("r", encoding="utf-8", newline="") as f:
-        reader = csv.DictReader(f)
-        # expects headers: title,filename
-        for row in reader:
-            title = (row.get("title") or "").strip()
-            filename = normalize_filename((row.get("filename") or "").strip())
-            if title and filename:
-                out.append((title, filename))
-    return out
-
-
-def build_master_link_pool() -> Dict[str, List[Tuple[str, str, str]]]:
-    """
-    Returns:
-      pool_by_hub[hub_slug] = list of (title, filename, url_path)
-    """
-    pool_by_hub: Dict[str, List[Tuple[str, str, str]]] = {}
-    for hub_slug, _hub_title in HUBS:
-        items = []
-        for title, filename in load_hub_filenames_csv(hub_slug):
-            items.append((title, filename, url_for(hub_slug, filename)))
-        pool_by_hub[hub_slug] = items
-    return pool_by_hub
-
-
-def pick_internal_links(
-    pool_by_hub: Dict[str, List[Tuple[str, str, str]]],
-    hub_slug: str,
-    this_filename: str,
-    k_same: int = 2,
-    k_cross: int = 2,
-) -> List[Tuple[str, str]]:
-    """
-    Picks (anchor_text, href) pairs deterministically based on hub+filename.
-    Prefers same hub first, then cross hubs.
-    """
-    this_filename = normalize_filename(this_filename)
-    seed = safe_md5_int(f"{hub_slug}|{this_filename}")
-
-    chosen: List[Tuple[str, str]] = []
-
-    same_pool = [x for x in pool_by_hub.get(hub_slug, []) if x[1] != this_filename]
-    if same_pool:
-        start = seed % len(same_pool)
-        for i in range(min(k_same, len(same_pool))):
-            t, _fn, href = same_pool[(start + i) % len(same_pool)]
-            chosen.append((t, href))
-
-    cross_items: List[Tuple[str, str, str]] = []
-    for other_hub, _ in HUBS:
-        if other_hub == hub_slug:
-            continue
-        cross_items.extend(pool_by_hub.get(other_hub, []))
-
-    if cross_items:
-        start = (seed * 7 + 13) % len(cross_items)
-        for i in range(min(k_cross, len(cross_items))):
-            t, _fn, href = cross_items[(start + i) % len(cross_items)]
-            chosen.append((t, href))
-
-    # Ensure uniqueness by href, preserve order
-    seen = set()
-    uniq: List[Tuple[str, str]] = []
-    for t, href in chosen:
-        if href in seen:
-            continue
-        seen.add(href)
-        uniq.append((t, href))
-    return uniq
-
-
-def inject_links_into_content_html(content_html: str, links: List[Tuple[str, str]]) -> str:
-    """
-    Inserts 2 links after the first </p> and 2 links near the end (before last </p> if found),
-    without needing the bot to generate links.
-    """
-    if not links:
-        return content_html
-
-    first_two = links[:2]
-    last_two = links[2:4]
-
-    def make_links_block(pairs: List[Tuple[str, str]]) -> str:
-        # Plain, SEO-safe: one sentence, two links
-        if not pairs:
-            return ""
-        parts = [f'<a href="{href}">{text}</a>' for text, href in pairs]
-        if len(parts) == 1:
-            return f"<p>Related: {parts[0]}.</p>"
-        return f"<p>Related: {parts[0]} and {parts[1]}.</p>"
-
-    block_a = make_links_block(first_two)
-    block_b = make_links_block(last_two)
-
-    html = content_html
-
-    # Insert block_a after first </p>
-    idx = html.find("</p>")
-    if idx != -1 and block_a:
-        insert_at = idx + len("</p>")
-        html = html[:insert_at] + "\n" + block_a + html[insert_at:]
-    elif block_a:
-        # fallback: prepend
-        html = block_a + "\n" + html
-
-    # Insert block_b near end: before last </p> (or append)
-    if block_b:
-        last_idx = html.rfind("</p>")
-        if last_idx != -1:
-            insert_at = last_idx + len("</p>")
-            html = html[:insert_at] + "\n" + block_b + html[insert_at:]
-        else:
-            html = html + "\n" + block_b
-
+def template_render(base_html: str, title: str, description: str, canonical: str, content_html: str) -> str:
+    # Support either {{CONTENT}} or {{CONTENT_HTML}} tokens in base.html
+    html = base_html
+    html = html.replace("{{TITLE}}", escape(title))
+    html = html.replace("{{DESCRIPTION}}", escape(description))
+    html = html.replace("{{CANONICAL}}", escape(canonical))
+    html = html.replace("{{CONTENT_HTML}}", content_html)
+    html = html.replace("{{CONTENT}}", content_html)
     return html
 
+def nav_html(active_hub: Optional[str] = None) -> str:
+    # Builds the top nav links; "Home" + hubs
+    links = ['<nav class="topnav">']
+    links.append('<a class="navlink" href="/">Home</a>')
+    for slug, label, _desc in HUBS:
+        cls = "navlink"
+        if active_hub and slug == active_hub:
+            cls += " active"
+        links.append(f'<a class="{cls}" href="/{slug}/">{escape(label)}</a>')
+    links.append("</nav>")
+    return "\n".join(links)
 
-def render_base(
-    title: str,
-    description: str,
-    canonical: str,
-    nav_html: str,
-    body_html: str,
-    gtag_id: Optional[str] = None,
-) -> str:
-    base = read_text(BASE_HTML_PATH)
+def footer_html() -> str:
+    parts = ['<footer class="site-footer">', '<div class="footer-links">']
+    for href, text in FOOTER_LINKS:
+        parts.append(f'<a href="{href}">{escape(text)}</a>')
+    parts.append("</div>")
+    parts.append(f'<div class="footer-copy">&copy; {date.today().year} {escape(SITE_DOMAIN)}</div>')
+    parts.append("</footer>")
+    return "\n".join(parts)
 
-    # Simple placeholder replacement (base.html must contain these tokens)
-    out = base
-    out = out.replace("{{PAGE_TITLE}}", title)
-    out = out.replace("{{META_DESCRIPTION}}", description)
-    out = out.replace("{{CANONICAL_URL}}", canonical)
-    out = out.replace("{{NAV_HTML}}", nav_html)
-    out = out.replace("{{BODY_HTML}}", body_html)
+def search_bar_html(placeholder: str = "Search GrizzlyGreens...") -> str:
+    # Stub UI only; you can wire JS later (like your other sites)
+    return f"""
+<div class="search-wrap">
+  <input id="site-search" class="search" type="search" placeholder="{escape(placeholder)}" autocomplete="off">
+</div>
+""".strip()
 
-    if "{{GTAG_SNIPPET}}" in out:
-        if gtag_id:
-            snippet = (
-                '<!-- Google tag (gtag.js) -->\n'
-                f'<script async src="https://www.googletagmanager.com/gtag/js?id={gtag_id}"></script>\n'
-                "<script>\n"
-                "  window.dataLayer = window.dataLayer || [];\n"
-                "  function gtag(){dataLayer.push(arguments);}\n"
-                "  gtag('js', new Date());\n\n"
-                f"  gtag('config', '{gtag_id}');\n"
-                "</script>\n"
-            )
-            out = out.replace("{{GTAG_SNIPPET}}", snippet)
+def card_html(title: str, blurb: str, href: str, button_text: str = "Open") -> str:
+    return f"""
+<article class="card">
+  <h2 class="card-title"><a href="{href}">{escape(title)}</a></h2>
+  <p class="card-text">{escape(blurb)}</p>
+  <a class="btn secondary" href="{href}">{escape(button_text)}</a>
+</article>
+""".strip()
+
+def homepage_content() -> str:
+    # Homepage: header + 5 hub cards
+    hub_cards = []
+    for slug, title, desc in HUBS:
+        hub_cards.append(card_html(title, desc, f"/{slug}/", "Open hub"))
+    return f"""
+{nav_html(active_hub=None)}
+{search_bar_html()}
+<main class="container">
+  <header class="hero">
+    <h1>{escape(SITE_NAME)}</h1>
+    <p class="subtitle">Fast, practical lawn and yard knowledge. No fluff. Built to scale cleanly.</p>
+  </header>
+  <section class="grid">
+    {"".join(hub_cards)}
+  </section>
+</main>
+{footer_html()}
+""".strip()
+
+def hub_index_content(hub_slug: str, hub_title: str, hub_desc: str, items: List[Tuple[str, str]]) -> str:
+    # items = [(title, filename.html), ...] for that hub
+    cards = []
+    for title, filename in items:
+        filename = ensure_html_filename(filename)
+        href = f"/{hub_slug}/{filename}"
+        # Use a generic blurb for now if you haven't authored yet; once JSON exists for that filename,
+        # the hub page can be upgraded later to pull real blurbs.
+        cards.append(card_html(title, "Practical guide in " + hub_title.lower() + ".", href, "Open"))
+    return f"""
+{nav_html(active_hub=hub_slug)}
+{search_bar_html()}
+<main class="container">
+  <header class="hub-hero">
+    <h1>{escape(hub_title)}</h1>
+    <p class="subtitle">{escape(hub_desc)}</p>
+  </header>
+  <section class="grid">
+    {"".join(cards)}
+  </section>
+</main>
+{footer_html()}
+""".strip()
+
+def read_hub_filenames_csv(hub_slug: str) -> List[Tuple[str, str]]:
+    # Reads /<hub_slug>/filenames.csv with header: title,filename
+    csv_path = Path(hub_slug) / "filenames.csv"
+    if not csv_path.exists():
+        return []
+    rows: List[Tuple[str, str]] = []
+    with csv_path.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for r in reader:
+            t = (r.get("title") or "").strip()
+            fn = (r.get("filename") or "").strip()
+            if not t or not fn:
+                continue
+            rows.append((t, fn))
+    return rows
+
+def load_article_json_files() -> List[Dict]:
+    objs: List[Dict] = []
+    if not PAGES_JSON_DIR.exists():
+        return objs
+    for path in sorted(PAGES_JSON_DIR.glob("*.json")):
+        try:
+            obj = json.loads(read_text(path))
+            if isinstance(obj, dict):
+                obj["_source_file"] = str(path)
+                objs.append(obj)
+        except Exception:
+            # skip bad JSON; keep generator running
+            continue
+    return objs
+
+def normalize_article_obj(obj: Dict) -> Optional[Dict]:
+    # Minimal required for you: hub_slug + filename + content bits.
+    # If old keys exist (output_path, canonical), accept them but normalize anyway.
+    hub_slug = (obj.get("hub_slug") or "").strip().strip("/")
+    filename = (obj.get("filename") or "").strip()
+
+    # Back-compat: if filename missing but output_path present, derive filename from it
+    output_path = (obj.get("output_path") or obj.get("outputPath") or "").strip().lstrip("/")
+    if not filename and output_path:
+        filename = output_path.split("/")[-1]
+
+    if not hub_slug:
+        # Back-compat: if output_path looks like hub/file.html, derive hub_slug
+        if output_path and "/" in output_path:
+            hub_slug = output_path.split("/")[0].strip()
         else:
-            out = out.replace("{{GTAG_SNIPPET}}", "")
-    return out
+            return None
 
+    if not filename:
+        return None
 
-def nav_html() -> str:
-    # Hardcoded nav to hub indexes + home
-    links = ['<a href="/">Home</a>']
-    for hub_slug, hub_title in HUBS:
-        links.append(f'<a href="/{hub_slug}/">{hub_title}</a>')
-    return '<nav class="top-nav">' + "\n".join(links) + "</nav>"
+    filename = ensure_html_filename(filename)
+    output_path2 = build_output_path(hub_slug, filename)
+    canonical2 = build_canonical(output_path2)
 
+    title = (obj.get("title") or "").strip()
+    description = (obj.get("description") or "").strip()
+    card_blurb = (obj.get("card_blurb") or obj.get("cardBlurb") or "").strip()
+    content_html = obj.get("content_html") or obj.get("contentHtml") or ""
 
-def hub_index_card(title: str, blurb: str, href: str) -> str:
-    return (
-        '<div class="card">'
-        f'<div class="card-title">{title}</div>'
-        f'<div class="card-desc">{blurb}</div>'
-        f'<a class="btn" href="{href}">Open hub</a>'
-        "</div>"
-    )
+    # Hard requirement: title and content_html should exist for an article page.
+    # If not, skip it rather than breaking the entire build.
+    if not title or not isinstance(content_html, str) or not content_html.strip():
+        return None
 
+    # If bot didn't provide description/blurb yet, auto-fill minimally
+    if not description:
+        description = title
+    if not card_blurb:
+        card_blurb = description
 
-def article_card(title: str, blurb: str, href: str) -> str:
-    return (
-        '<div class="card">'
-        f'<div class="card-title">{title}</div>'
-        f'<div class="card-desc">{blurb}</div>'
-        f'<a class="btn" href="{href}">Read</a>'
-        "</div>"
-    )
-
-
-def build_homepage(gtag_id: Optional[str] = None) -> None:
-    hub_blurbs = {
-        "lawn-basics": "Grass types, mowing basics, common problems, and practical fixes.",
-        "weeds-pests": "Identification first, then control: weeds, insects, and common lawn diseases.",
-        "watering-irrigation": "Watering frequency, drainage, irrigation basics, and drought-proofing.",
-        "soil-fertilizer": "Soil, fertilizer, compost, amendments, and what actually moves the needle.",
-        "tools-safety": "Tools that matter, how to use them, and how to avoid dumb injuries.",
+    return {
+        "hub_slug": hub_slug,
+        "filename": filename,
+        "output_path": output_path2,
+        "canonical": canonical2,
+        "title": title,
+        "description": description,
+        "card_blurb": card_blurb,
+        "content_html": content_html,
+        "_source_file": obj.get("_source_file", ""),
     }
 
-    cards = []
-    for hub_slug, hub_title in HUBS:
-        cards.append(hub_index_card(hub_title, hub_blurbs.get(hub_slug, ""), f"/{hub_slug}/"))
+def build_article_page(base_html: str, article: Dict) -> Tuple[str, str]:
+    # returns (output_path, html)
+    # Wrap content with shared nav/search/footer (so base.html stays generic)
+    body = f"""
+{nav_html(active_hub=article["hub_slug"])}
+{search_bar_html()}
+<main class="container article">
+  {article["content_html"]}
+</main>
+{footer_html()}
+""".strip()
 
-    body = (
-        f"<h1>{SITE_NAME}</h1>\n"
-        "<p>Fast, practical lawn and yard knowledge. No fluff. Built to scale cleanly.</p>\n"
-        '<div class="cards">' + "\n".join(cards) + "</div>\n"
+    html = template_render(
+        base_html=base_html,
+        title=article["title"],
+        description=article["description"],
+        canonical=article["canonical"],
+        content_html=body,
     )
+    return article["output_path"], html
 
-    html = render_base(
-        title=f"{SITE_NAME}",
-        description="Practical lawn, yard, and DIY outdoor knowledge: grass, weeds, watering, soil, and tools.",
-        canonical=f"{SITE_DOMAIN}/",
-        nav_html=nav_html(),
-        body_html=body,
-        gtag_id=gtag_id,
-    )
-    write_text(REPO_ROOT / "index.html", html)
+def build_simple_page(base_html: str, title: str, description: str, canonical: str, body_html: str) -> str:
+    body = f"""
+{nav_html(active_hub=None)}
+{search_bar_html()}
+<main class="container">
+  {body_html}
+</main>
+{footer_html()}
+""".strip()
+    return template_render(base_html, title, description, canonical, body)
 
-
-def build_hub_indexes(gtag_id: Optional[str] = None) -> None:
-    """
-    Builds /{hub}/index.html using filenames.csv titles and whatever article JSONs exist for blurbs.
-    """
-    # Build blurb lookup from existing JSONs (hub_slug+filename -> (title, blurb))
-    blurb_lookup: Dict[Tuple[str, str], Tuple[str, str]] = {}
-    if PAGES_JSON_DIR.exists():
-        for p in sorted(PAGES_JSON_DIR.glob("*.json")):
-            try:
-                data = json.loads(read_text(p))
-            except Exception:
-                continue
-            hub = (data.get("hub_slug") or "").strip()
-            fn = normalize_filename((data.get("filename") or "").strip())
-            title = (data.get("title") or "").strip()
-            blurb = (data.get("card_blurb") or "").strip()
-            if hub and fn and title:
-                blurb_lookup[(hub, fn)] = (title, blurb)
-
-    for hub_slug, hub_title in HUBS:
-        items = load_hub_filenames_csv(hub_slug)
-        cards = []
-        for title, filename in items:
-            href = url_for(hub_slug, filename)
-            t2, b2 = blurb_lookup.get((hub_slug, filename), (title, ""))
-            cards.append(article_card(t2, b2, href))
-
-        body = (
-            f"<h1>{hub_title}</h1>\n"
-            '<div class="cards">' + "\n".join(cards) + "</div>\n"
-        )
-
-        html = render_base(
-            title=f"{hub_title} | {SITE_NAME}",
-            description=f"{hub_title} guides and articles.",
-            canonical=f"{SITE_DOMAIN}/{hub_slug}/",
-            nav_html=nav_html(),
-            body_html=body,
-            gtag_id=gtag_id,
-        )
-        write_text(hub_folder(hub_slug) / "index.html", html)
-
-
-def build_articles(gtag_id: Optional[str] = None) -> int:
-    pool_by_hub = build_master_link_pool()
-    count = 0
-
-    if not PAGES_JSON_DIR.exists():
-        return 0
-
-    for p in sorted(PAGES_JSON_DIR.glob("*.json")):
-        data = json.loads(read_text(p))
-
-        hub_slug = (data.get("hub_slug") or "").strip()
-        filename = normalize_filename((data.get("filename") or "").strip())
-        title = (data.get("title") or "").strip()
-        description = (data.get("description") or "").strip()
-        content_html = (data.get("content_html") or "").strip()
-
-        if not hub_slug or not filename or not title or not content_html:
-            continue
-
-        links = pick_internal_links(pool_by_hub, hub_slug, filename, k_same=2, k_cross=2)
-        content_html = inject_links_into_content_html(content_html, links)
-
-        canonical = canonical_for(hub_slug, filename)
-
-        body = content_html
-
-        html = render_base(
-            title=f"{title} | {SITE_NAME}",
-            description=description,
-            canonical=canonical,
-            nav_html=nav_html(),
-            body_html=body,
-            gtag_id=gtag_id,
-        )
-
-        out_path = hub_folder(hub_slug) / filename
-        write_text(out_path, html)
-        count += 1
-
-    return count
-
-
-def build_sitemap() -> int:
-    """
-    Only canonical URLs: homepage, hub indexes, and any article pages listed in pages_json.
-    """
-    urls: List[Tuple[str, str]] = []
-
-    today = now_yyyy_mm_dd()
-
-    urls.append((f"{SITE_DOMAIN}/", today))
-    for hub_slug, _ in HUBS:
-        urls.append((f"{SITE_DOMAIN}/{hub_slug}/", today))
-
-    if PAGES_JSON_DIR.exists():
-        for p in sorted(PAGES_JSON_DIR.glob("*.json")):
-            try:
-                data = json.loads(read_text(p))
-            except Exception:
-                continue
-            hub_slug = (data.get("hub_slug") or "").strip()
-            filename = normalize_filename((data.get("filename") or "").strip())
-            if hub_slug and filename:
-                urls.append((canonical_for(hub_slug, filename), today))
-
-    # Deduplicate
+def write_sitemap(urls: List[str]) -> None:
+    # De-dupe + stable order
     seen = set()
-    uniq: List[Tuple[str, str]] = []
-    for u, lm in urls:
-        if u in seen:
+    clean = []
+    for u in urls:
+        u = u.strip()
+        if not u or u in seen:
             continue
         seen.add(u)
-        uniq.append((u, lm))
+        clean.append(u)
 
-    lines = []
-    lines.append('<?xml version="1.0" encoding="UTF-8"?>')
-    lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
-    for u, lm in uniq:
-        lines.append("  <url>")
-        lines.append(f"    <loc>{u}</loc>")
-        lines.append(f"    <lastmod>{lm}</lastmod>")
-        lines.append("  </url>")
-    lines.append("</urlset>")
+    items = []
+    for u in clean:
+        items.append(f"  <url><loc>{escape(u)}</loc></url>")
 
-    write_text(REPO_ROOT / "sitemap.xml", "\n".join(lines) + "\n")
-    return len(uniq)
-
+    xml = "\n".join([
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        *items,
+        "</urlset>",
+        "",
+    ])
+    write_text(SITEMAP_PATH, xml)
 
 def main() -> int:
-    # If you have a GA4 Measurement ID already, put it here. Example: "G-XXXXXXXXXX"
-    GTAG_ID: Optional[str] = None
-
     if not BASE_HTML_PATH.exists():
-        raise FileNotFoundError(f"Missing base.html at {BASE_HTML_PATH}")
+        raise SystemExit("Missing base.html in repo root.")
 
-    if not STYLES_CSS_PATH.exists():
-        raise FileNotFoundError(f"Missing styles.css at {STYLES_CSS_PATH}")
+    base_html = read_text(BASE_HTML_PATH)
 
-    articles_built = build_articles(gtag_id=GTAG_ID)
-    build_hub_indexes(gtag_id=GTAG_ID)
-    build_homepage(gtag_id=GTAG_ID)
-    sitemap_count = build_sitemap()
+    urls_for_sitemap: List[str] = []
 
-    print(f"Built {articles_built} article pages from JSON files.")
-    print(f"Built {len(HUBS)} hub index pages.")
+    # 1) Homepage
+    home_path = Path("index.html")
+    home_html = template_render(
+        base_html=base_html,
+        title=SITE_NAME,
+        description="Practical lawn, weed, irrigation, soil, and yard safety guides built to scale cleanly.",
+        canonical=f"{SITE_BASE}/",
+        content_html=homepage_content(),
+    )
+    write_text(home_path, home_html)
+    urls_for_sitemap.append(f"{SITE_BASE}/")
     print("Built homepage index.html.")
-    print(f"Wrote sitemap.xml with {sitemap_count} URLs.")
-    return 0
 
+    # 2) Hub index pages from filenames.csv (works even before articles exist)
+    for slug, title, desc in HUBS:
+        items = read_hub_filenames_csv(slug)
+        hub_index_path = Path(slug) / "index.html"
+        hub_html = template_render(
+            base_html=base_html,
+            title=f"{title} - {SITE_NAME}",
+            description=desc,
+            canonical=f"{SITE_BASE}/{slug}/",
+            content_html=hub_index_content(slug, title, desc, items),
+        )
+        write_text(hub_index_path, hub_html)
+        urls_for_sitemap.append(f"{SITE_BASE}/{slug}/")
+    print(f"Built {len(HUBS)} hub index pages.")
+
+    # 3) Article pages from pages_json/*.json
+    raw_objs = load_article_json_files()
+    article_objs: List[Dict] = []
+    for o in raw_objs:
+        a = normalize_article_obj(o)
+        if a:
+            article_objs.append(a)
+
+    built_count = 0
+    for a in article_objs:
+        out_path, html = build_article_page(base_html, a)
+        write_text(Path(out_path), html)
+        urls_for_sitemap.append(build_canonical(out_path))
+        built_count += 1
+
+    print(f"Built {built_count} article pages from {len(raw_objs)} JSON files.")
+
+    # 4) Sitemap
+    write_sitemap(urls_for_sitemap)
+    print(f"Wrote sitemap.xml with {len(set(urls_for_sitemap))} URLs.")
+    return 0
 
 if __name__ == "__main__":
     raise SystemExit(main())

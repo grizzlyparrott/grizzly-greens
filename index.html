@@ -1,75 +1,129 @@
+<!-- base.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GrizzlyGreens</title>
+  <meta name="description" content="Practical lawn, weed, irrigation, soil, and yard safety guides built to scale cleanly.">
+  <link rel="canonical" href="https://grizzlygreens.net/">
   <link rel="stylesheet" href="/styles.css">
 
-  <title>GrizzlyGreens</title>
-  <meta name="description" content="Practical lawn, yard, and DIY outdoor knowledge: grass, weeds, watering, soil, and tools.">
-  <link rel="canonical" href="https://grizzlygreens.net/">
-
-  <meta name="robots" content="index,follow">
-
   <link rel="icon" href="/favicon.ico">
-  <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-MXR7KVMW56"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-MXR7KVMW56');
-  </script>
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="GrizzlyGreens">
+  <meta property="og:description" content="Practical lawn, weed, irrigation, soil, and yard safety guides built to scale cleanly.">
+  <meta property="og:url" content="https://grizzlygreens.net/">
 
-  <style>
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.55; }
-    header, main, footer { max-width: 980px; margin: 0 auto; padding: 16px; }
-    header { border-bottom: 1px solid #ddd; }
-    nav a { margin-right: 12px; text-decoration: none; }
-    .searchbar { margin-top: 10px; }
-    .searchbar input { width: 100%; padding: 10px; font-size: 16px; }
-    footer { border-top: 1px solid #ddd; font-size: 14px; }
-  </style>
+  <!-- Google tag -->
+  {{GTAG}}
 </head>
-
 <body>
-  <header>
-    <nav>
-      <a href="/">Home</a>
-      <a href="/lawn-basics/">Lawn &amp; Grass Basics</a>
-      <a href="/weeds-pests/">Weeds, Pests &amp; Disease</a>
-      <a href="/watering-irrigation/">Watering, Irrigation &amp; Drainage</a>
-      <a href="/soil-fertilizer/">Soil, Fertilizer &amp; Amendments</a>
-      <a href="/tools-safety/">Tools &amp; Yard Safety</a>
+  <header class="site-header">
+    <nav class="nav">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/lawn-basics/" class="nav-link">Lawn &amp; Grass Basics</a>
+      <a href="/weeds-pests/" class="nav-link">Weeds, Pests &amp; Disease</a>
+      <a href="/watering-irrigation/" class="nav-link">Watering, Irrigation &amp; Drainage</a>
+      <a href="/soil-fertilizer/" class="nav-link">Soil, Fertilizer &amp; Amendments</a>
+      <a href="/tools-safety/" class="nav-link">Tools &amp; Yard Safety</a>
     </nav>
 
-    <div class="searchbar">
-      <form action="/search.html" method="get">
-        <input type="search" name="q" placeholder="Search GrizzlyGreens..." aria-label="Search">
-      </form>
+    <div class="search-wrap">
+      <input id="siteSearch" class="search" type="search" placeholder="Search GrizzlyGreens..." autocomplete="off">
+      <select id="searchScope" class="search-scope">
+        <option value="all" selected>All hubs</option>
+        <option value="lawn-basics">Lawn &amp; Grass Basics</option>
+        <option value="weeds-pests">Weeds, Pests &amp; Disease</option>
+        <option value="watering-irrigation">Watering, Irrigation &amp; Drainage</option>
+        <option value="soil-fertilizer">Soil, Fertilizer &amp; Amendments</option>
+        <option value="tools-safety">Tools &amp; Yard Safety</option>
+      </select>
     </div>
   </header>
 
-  <main>
-    {{CONTENT}}
+  <main class="container">
+    <nav class="topnav">
+<a class="navlink" href="/">Home</a>
+<a class="navlink" href="/lawn-basics/">Lawn and Grass Basics</a>
+<a class="navlink" href="/weeds-pests/">Weeds, Pests, &amp; Lawn Diseases</a>
+<a class="navlink" href="/watering-irrigation/">Watering, Irrigation, &amp; Drainage</a>
+<a class="navlink" href="/soil-fertilizer/">Soil, Fertilizer, &amp; Amendments</a>
+<a class="navlink" href="/tools-safety/">Tools, Equipment, &amp; Yard Safety</a>
+</nav>
+<div class="search-wrap">
+  <input id="site-search" class="search" type="search" placeholder="Search GrizzlyGreens..." autocomplete="off">
+</div>
+<main class="container">
+  <header class="hero">
+    <h1>GrizzlyGreens</h1>
+    <p class="subtitle">Fast, practical lawn and yard knowledge. No fluff. Built to scale cleanly.</p>
+  </header>
+  <section class="grid">
+    <article class="card">
+  <h2 class="card-title"><a href="/lawn-basics/">Lawn and Grass Basics</a></h2>
+  <p class="card-text">Grass types, mowing basics, common problems, and practical fixes.</p>
+  <a class="btn secondary" href="/lawn-basics/">Open hub</a>
+</article><article class="card">
+  <h2 class="card-title"><a href="/weeds-pests/">Weeds, Pests, &amp; Lawn Diseases</a></h2>
+  <p class="card-text">Identification first, then control: weeds, insects, and common lawn diseases.</p>
+  <a class="btn secondary" href="/weeds-pests/">Open hub</a>
+</article><article class="card">
+  <h2 class="card-title"><a href="/watering-irrigation/">Watering, Irrigation, &amp; Drainage</a></h2>
+  <p class="card-text">Watering schedules, sprinkler setups, drainage issues, and fixes that work.</p>
+  <a class="btn secondary" href="/watering-irrigation/">Open hub</a>
+</article><article class="card">
+  <h2 class="card-title"><a href="/soil-fertilizer/">Soil, Fertilizer, &amp; Amendments</a></h2>
+  <p class="card-text">Soil basics, nutrients, pH, and amendments that actually move the needle.</p>
+  <a class="btn secondary" href="/soil-fertilizer/">Open hub</a>
+</article><article class="card">
+  <h2 class="card-title"><a href="/tools-safety/">Tools, Equipment, &amp; Yard Safety</a></h2>
+  <p class="card-text">Tools that matter, maintenance, and safety rules that prevent dumb injuries.</p>
+  <a class="btn secondary" href="/tools-safety/">Open hub</a>
+</article>
+  </section>
+</main>
+<footer class="site-footer">
+<div class="footer-links">
+<a href="/about.html">About</a>
+<a href="/disclaimer.html">Disclaimer</a>
+<a href="/privacy-policy.html">Privacy Policy</a>
+<a href="/sitemap.xml">Sitemap</a>
+</div>
+<div class="footer-copy">&copy; 2025 grizzlygreens.net</div>
+</footer>
   </main>
 
-  <footer>
-    <div>
+  <footer class="site-footer">
+    <div class="footer-links">
       <a href="/about.html">About</a>
       <a href="/disclaimer.html">Disclaimer</a>
-      <a href="/privacy-policy.html">Privacy Policy</a>
+      <a href="/privacy.html">Privacy Policy</a>
       <a href="/sitemap.xml">Sitemap</a>
     </div>
-    <div style="margin-top:10px;">
-      &copy; <span id="year"></span> GrizzlyGreens.net
-    </div>
-    <script>
-      document.getElementById("year").textContent = new Date().getFullYear();
-    </script>
+    <div class="footer-copy">© 2025 GrizzlyGreens.net</div>
   </footer>
+
+  <script>
+  // Minimal search shell; real search index can come later.
+  (function () {
+    const q = document.getElementById("siteSearch");
+    const scope = document.getElementById("searchScope");
+    if (!q || !scope) return;
+    q.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      const term = (q.value || "").trim();
+      if (!term) return;
+      // temporary: uses site: query so it works before you build a local index
+      const s = scope.value;
+      const hubPrefix = s === "all" ? "" : ("site:grizzlygreens.net/" + s + "/ ");
+      const url = "https://www.google.com/search?q=" + encodeURIComponent(hubPrefix + term);
+      window.open(url, "_blank");
+    });
+  })();
+  </script>
 </body>
 </html>
