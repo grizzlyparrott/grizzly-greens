@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 # build_pages.py
-# Reads base.html + pages_json/*.json and writes final HTML files + hub index pages + sitemap.xml.
-# Placeholders required in base.html:
+# Generates:
+# - Article pages from pages_json/*.json (derived canonical + output path)
+# - Hub index pages (/hub-slug/index.html) canonicalized to /hub-slug/
+# - Homepage (/index.html) listing hubs as cards
+# - sitemap.xml from canonicals only
+#
+# base.html must contain placeholders:
 # {{PAGE_TITLE}}, {{META_DESCRIPTION}}, {{CANONICAL_URL}}, {{CONTENT}}
 
 from __future__ import annotations
@@ -10,7 +15,6 @@ import json
 import re
 import time
 from pathlib import Path
-from urllib.parse import urlparse, urlunparse
 
 SITE_HOST = "grizzlygreens.net"
 SITE_BASE = f"https://{SITE_HOST}"
@@ -20,45 +24,51 @@ BASE_FILE = "base.html"
 SITEMAP_FILE = "sitemap.xml"
 
 CANONICAL_BAD_SUFFIX = "/index.html"
+BLURB_CAP = 240
 
 # Locked hub contract (do not casually change)
 HUBS = {
     "lawn-basics": {
         "title": "Lawn and Grass Basics",
-        "intro": (
-            "<p>Foundational lawn knowledge without the fluff. "
-            "Grass types, mowing basics, common problems, and practical fixes.</p>"
+        "hub_card": "Grass types, mowing basics, common problems, and practical fixes.",
+        "intro_html": (
+            "<p>Foundational lawn knowledge without the fluff. Grass types, mowing basics, "
+            "common problems, and practical fixes.</p>"
         ),
     },
     "weeds-pests": {
         "title": "Weeds, Pests, & Lawn Diseases",
-        "intro": (
-            "<p>Identification first, then control. "
-            "Weeds, insects, and common lawn diseases with realistic fixes.</p>"
+        "hub_card": "Identification first, then control: weeds, insects, and common lawn diseases.",
+        "intro_html": (
+            "<p>Identification first, then control. Weeds, insects, and common lawn diseases "
+            "with realistic fixes.</p>"
         ),
     },
     "watering-irrigation": {
         "title": "Watering, Irrigation, & Drainage",
-        "intro": (
-            "<p>Water is the lever. "
-            "Scheduling, irrigation basics, runoff, pooling, and drainage problems.</p>"
+        "hub_card": "Scheduling, irrigation basics, runoff, pooling, and drainage problems.",
+        "intro_html": (
+            "<p>Water is the lever. Scheduling, irrigation basics, runoff, pooling, and drainage problems.</p>"
         ),
     },
     "soil-fertilizer": {
         "title": "Soil, Fertilizer, & Amendments",
-        "intro": (
-            "<p>Soil drives everything. "
-            "Fertilizer basics, amendments, pH, and practical soil improvement.</p>"
+        "hub_card": "Soil fundamentals, fertilizer basics, amendments, pH, and improvement tactics.",
+        "intro_html": (
+            "<p>Soil drives everything. Fertilizer basics, amendments, pH, and practical soil improvement.</p>"
         ),
     },
     "tools-safety": {
         "title": "Tools, Equipment, & Yard Safety",
-        "intro": (
+        "hub_card": "Tools that matter, how to use them, maintenance, and safety.",
+        "intro_html": (
             "<p>Tools that actually matter, how to use them, and how to stay intact. "
             "Maintenance, safety, and choosing the right gear.</p>"
         ),
     },
 }
+
+SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
 def html_escape_attr(s: str) -> str:
@@ -70,19 +80,24 @@ def html_escape_attr(s: str) -> str:
     )
 
 
-def norm_url(url: str) -> str:
-    url = url.strip()
-    p = urlparse(url)
+def html_escape_text(s: str) -> str:
+    return (
+        s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
 
-    if not p.scheme:
-        path = url if url.startswith("/") else f"/{url}"
-        base = urlparse(SITE_BASE)
-        url = urlunparse((base.scheme, base.netloc, path, "", "", ""))
-        p = urlparse(url)
 
-    path = p.path or "/"
-    path = re.sub(r"/{2,}", "/", path)
-    return urlunparse(("https", SITE_HOST, path, "", "", ""))
+def cap_blurb(s: str, limit: int = BLURB_CAP) -> str:
+    s = " ".join(s.split())
+    if len(s) <= limit:
+        return s
+    cut = s[:limit].rstrip()
+    # Avoid ugly mid-word cuts when possible
+    sp = cut.rfind(" ")
+    if sp >= max(0, limit - 40):
+        cut = cut[:sp].rstrip()
+    return cut + "…"
 
 
 def iso_date_utc() -> str:
@@ -91,11 +106,11 @@ def iso_date_utc() -> str:
 
 def write_sitemap(repo_root: Path, urls: list[str]) -> None:
     uniq = sorted(set(urls))
+    today = iso_date_utc()
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ]
-    today = iso_date_utc()
     for u in uniq:
         lines.append("  <url>")
         lines.append(f"    <loc>{u}</loc>")
@@ -114,6 +129,14 @@ def build_html(base_html: str, page_title: str, meta_desc: str, canonical_url: s
     return html
 
 
+def hub_index_output_path(hub_slug: str) -> str:
+    return f"{hub_slug}/index.html"
+
+
+def hub_index_canonical(hub_slug: str) -> str:
+    return f"{SITE_BASE}/{hub_slug}/"
+
+
 def validate_article(obj: dict, src_path: Path) -> dict:
     required = ["hub_slug", "slug", "title", "description", "card_blurb", "content_html"]
     for k in required:
@@ -127,13 +150,19 @@ def validate_article(obj: dict, src_path: Path) -> dict:
     blurb = obj["card_blurb"].strip()
     content = obj["content_html"].strip()
 
+    tags = obj.get("tags", [])
+    if tags is None:
+        tags = []
+    if not isinstance(tags, list) or any((not isinstance(t, str) or not t.strip()) for t in tags):
+        raise ValueError(f"{src_path}: tags must be an array of non-empty strings if provided")
+
+    tags = [t.strip() for t in tags]
+
     if hub_slug not in HUBS:
         raise ValueError(f"{src_path}: hub_slug must be one of {sorted(HUBS.keys())} (got: {hub_slug})")
 
-    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
-        raise ValueError(
-            f"{src_path}: slug must be lowercase kebab-case letters/numbers only (got: {slug})"
-        )
+    if not SLUG_RE.fullmatch(slug):
+        raise ValueError(f"{src_path}: slug must be lowercase kebab-case letters/numbers only (got: {slug})")
 
     if "<h1" not in content.lower():
         raise ValueError(f"{src_path}: content_html must include an <h1>")
@@ -151,34 +180,63 @@ def validate_article(obj: dict, src_path: Path) -> dict:
         "description": desc,
         "card_blurb": blurb,
         "content_html": content,
+        "tags": tags,
         "output_path": output_path,
         "canonical": canonical,
     }
 
 
-def hub_index_output_path(hub_slug: str) -> str:
-    # We output /hub-slug/index.html but canonicalize to /hub-slug/
-    return f"{hub_slug}/index.html"
+def build_article_cards(articles: list[dict]) -> str:
+    cards = []
+    for a in articles:
+        href = f"/{a['hub_slug']}/{a['slug']}.html"
+        title = html_escape_text(a["title"])
+        blurb = html_escape_text(cap_blurb(a["card_blurb"]))
+        tags = a.get("tags", [])
 
+        tags_html = ""
+        if tags:
+            safe_tags = [html_escape_text(t) for t in tags]
+            tags_html = f'<div class="card-tags">{" • ".join(safe_tags)}</div>'
 
-def hub_index_canonical(hub_slug: str) -> str:
-    return f"{SITE_BASE}/{hub_slug}/"
+        cards.append(
+            f'<div class="card">'
+            f'<h2 class="card-title"><a href="{href}">{title}</a></h2>'
+            f'<p class="card-blurb">{blurb}</p>'
+            f'{tags_html}'
+            f'<a class="read-more" href="{href}">Read more</a>'
+            f"</div>"
+        )
+    if not cards:
+        return "<p>No articles yet.</p>"
+    return '<div class="cards">\n' + "\n".join(cards) + "\n</div>"
 
 
 def build_hub_index_content(hub_slug: str, articles: list[dict]) -> str:
     hub_title = HUBS[hub_slug]["title"]
-    hub_intro = HUBS[hub_slug]["intro"]
+    hub_intro = HUBS[hub_slug]["intro_html"]
+    listing = build_article_cards(articles)
+    return f"<h1>{html_escape_text(hub_title)}</h1>\n{hub_intro}\n{listing}"
 
-    items = []
-    for a in articles:
-        # a["canonical"] is the public URL; we link to path relative from root
-        href = f"/{a['hub_slug']}/{a['slug']}.html"
-        t = a["title"]
-        b = a["card_blurb"]
-        items.append(f'<article><h2><a href="{href}">{t}</a></h2><p>{b}</p></article>')
 
-    listing = "\n".join(items) if items else "<p>No articles yet.</p>"
-    return f"<h1>{hub_title}</h1>\n{hub_intro}\n<section>\n{listing}\n</section>"
+def build_homepage_content() -> str:
+    hub_cards = []
+    for hub_slug in HUBS.keys():
+        href = f"/{hub_slug}/"
+        title = html_escape_text(HUBS[hub_slug]["title"])
+        blurb = html_escape_text(HUBS[hub_slug]["hub_card"])
+        hub_cards.append(
+            f'<div class="card">'
+            f'<h2 class="card-title"><a href="{href}">{title}</a></h2>'
+            f'<p class="card-blurb">{blurb}</p>'
+            f'<a class="read-more" href="{href}">Open hub</a>'
+            f"</div>"
+        )
+    return (
+        "<h1>GrizzlyGreens</h1>"
+        "<p>Fast, practical lawn and yard knowledge. No fluff. Built to scale cleanly.</p>"
+        '<div class="cards">\n' + "\n".join(hub_cards) + "\n</div>"
+    )
 
 
 def main() -> int:
@@ -194,7 +252,6 @@ def main() -> int:
         return 2
 
     base_html = base_path.read_text(encoding="utf-8", errors="strict")
-
     for ph in ["{{PAGE_TITLE}}", "{{META_DESCRIPTION}}", "{{CANONICAL_URL}}", "{{CONTENT}}"]:
         if ph not in base_html:
             print(f"ERROR: base.html missing placeholder {ph}")
@@ -231,15 +288,15 @@ def main() -> int:
         articles.append(article)
         written_articles += 1
 
-    # Build hub index pages from articles
+    # Build hub index pages
     written_hubs = 0
     hub_urls_for_sitemap: list[str] = []
-    for hub_slug, hub in HUBS.items():
+    for hub_slug in HUBS.keys():
         hub_articles = [a for a in articles if a["hub_slug"] == hub_slug]
         hub_articles.sort(key=lambda x: x["title"].lower())
 
         hub_content = build_hub_index_content(hub_slug, hub_articles)
-        hub_title = hub["title"]
+        hub_title = HUBS[hub_slug]["title"]
         hub_desc = f"All GrizzlyGreens articles in {hub_title}."
 
         hub_out = repo_root / hub_index_output_path(hub_slug)
@@ -257,7 +314,19 @@ def main() -> int:
         written_hubs += 1
         hub_urls_for_sitemap.append(hub_index_canonical(hub_slug))
 
-    # Sitemap URLs: homepage + hub canonicals + article canonicals
+    # Build homepage
+    home_content = build_homepage_content()
+    home_out = repo_root / "index.html"
+    home_html = build_html(
+        base_html=base_html,
+        page_title="GrizzlyGreens",
+        meta_desc="Practical lawn and yard knowledge across mowing, weeds, watering, soil, tools, and safety.",
+        canonical_url=SITE_BASE + "/",
+        content_html=home_content,
+    )
+    home_out.write_text(home_html, encoding="utf-8")
+
+    # Sitemap: homepage + hub canonicals + article canonicals
     urls = [SITE_BASE + "/"]
     urls.extend(hub_urls_for_sitemap)
     urls.extend([a["canonical"] for a in articles])
@@ -265,6 +334,7 @@ def main() -> int:
 
     print(f"Built {written_articles} article pages from {len(json_files)} JSON files.")
     print(f"Built {written_hubs} hub index pages.")
+    print("Built homepage index.html.")
     print(f"Wrote {SITEMAP_FILE} with {len(set(urls))} URLs.")
     return 0
 

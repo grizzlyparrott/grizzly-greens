@@ -1,21 +1,81 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grizzly Greens</title>
-           <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MXR7KVMW56"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/styles.css">
 
-      gtag('config', 'G-MXR7KVMW56');
-    </script>
+  <title>GrizzlyGreens</title>
+  <meta name="description" content="Practical lawn and yard knowledge across mowing, weeds, watering, soil, tools, and safety.">
+  <link rel="canonical" href="https://grizzlygreens.net/">
+
+  <meta name="robots" content="index,follow">
+
+  <link rel="icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-MXR7KVMW56"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-MXR7KVMW56');
+  </script>
+
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.55; }
+    header, main, footer { max-width: 980px; margin: 0 auto; padding: 16px; }
+    header { border-bottom: 1px solid #ddd; }
+    nav a { margin-right: 12px; text-decoration: none; }
+    .searchbar { margin-top: 10px; }
+    .searchbar input { width: 100%; padding: 10px; font-size: 16px; }
+    footer { border-top: 1px solid #ddd; font-size: 14px; }
+  </style>
 </head>
+
 <body>
-    <h1>Grizzly Greens</h1>
-    <p>Welcome to the future home of elite golf wisdom, questionable life choices, and probably some gear reviews.</p>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/lawn-basics/">Lawn &amp; Grass Basics</a>
+      <a href="/weeds-pests/">Weeds, Pests &amp; Disease</a>
+      <a href="/watering-irrigation/">Watering, Irrigation &amp; Drainage</a>
+      <a href="/soil-fertilizer/">Soil, Fertilizer &amp; Amendments</a>
+      <a href="/tools-safety/">Tools &amp; Yard Safety</a>
+    </nav>
+
+    <div class="searchbar">
+      <form action="/search.html" method="get">
+        <input type="search" name="q" placeholder="Search GrizzlyGreens..." aria-label="Search">
+      </form>
+    </div>
+  </header>
+
+  <main>
+    <h1>GrizzlyGreens</h1><p>Fast, practical lawn and yard knowledge. No fluff. Built to scale cleanly.</p><div class="cards">
+<div class="card"><h2 class="card-title"><a href="/lawn-basics/">Lawn and Grass Basics</a></h2><p class="card-blurb">Grass types, mowing basics, common problems, and practical fixes.</p><a class="read-more" href="/lawn-basics/">Open hub</a></div>
+<div class="card"><h2 class="card-title"><a href="/weeds-pests/">Weeds, Pests, &amp; Lawn Diseases</a></h2><p class="card-blurb">Identification first, then control: weeds, insects, and common lawn diseases.</p><a class="read-more" href="/weeds-pests/">Open hub</a></div>
+<div class="card"><h2 class="card-title"><a href="/watering-irrigation/">Watering, Irrigation, &amp; Drainage</a></h2><p class="card-blurb">Scheduling, irrigation basics, runoff, pooling, and drainage problems.</p><a class="read-more" href="/watering-irrigation/">Open hub</a></div>
+<div class="card"><h2 class="card-title"><a href="/soil-fertilizer/">Soil, Fertilizer, &amp; Amendments</a></h2><p class="card-blurb">Soil fundamentals, fertilizer basics, amendments, pH, and improvement tactics.</p><a class="read-more" href="/soil-fertilizer/">Open hub</a></div>
+<div class="card"><h2 class="card-title"><a href="/tools-safety/">Tools, Equipment, &amp; Yard Safety</a></h2><p class="card-blurb">Tools that matter, how to use them, maintenance, and safety.</p><a class="read-more" href="/tools-safety/">Open hub</a></div>
+</div>
+  </main>
+
+  <footer>
+    <div>
+      <a href="/about.html">About</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+      <a href="/privacy-policy.html">Privacy Policy</a>
+      <a href="/sitemap.xml">Sitemap</a>
+    </div>
+    <div style="margin-top:10px;">
+      &copy; <span id="year"></span> GrizzlyGreens.net
+    </div>
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </footer>
 </body>
 </html>
