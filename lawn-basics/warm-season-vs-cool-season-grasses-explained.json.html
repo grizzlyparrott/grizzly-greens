@@ -1,14 +1,14 @@
-<!-- base.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>Warm Season vs Cool Season Grasses Explained</title>
   <meta name="description" content="Clear differences between warm-season and cool-season grasses, when each thrives, and how growth patterns affect mowing, watering, and color.">
   <link rel="canonical" href="https://grizzlygreens.net/lawn-basics/warm-season-vs-cool-season-grasses-explained.json.html">
-  <link rel="stylesheet" href="/styles.css">
 
+  <link rel="stylesheet" href="/styles.css">
   <link rel="icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
@@ -19,34 +19,43 @@
   <meta property="og:url" content="https://grizzlygreens.net/lawn-basics/warm-season-vs-cool-season-grasses-explained.json.html">
 
   <!-- Google tag -->
-  {{GTAG}}
+  <!-- PASTE YOUR REAL GTAG SCRIPT HERE -->
+   <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MXR7KVMW56"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-MXR7KVMW56');
+</script>
 </head>
+
 <body>
-  <header class="site-header">
-    <nav class="nav">
-      <a href="/" class="nav-link">Home</a>
-      <a href="/lawn-basics/" class="nav-link">Lawn &amp; Grass Basics</a>
-      <a href="/weeds-pests/" class="nav-link">Weeds, Pests &amp; Disease</a>
-      <a href="/watering-irrigation/" class="nav-link">Watering, Irrigation &amp; Drainage</a>
-      <a href="/soil-fertilizer/" class="nav-link">Soil, Fertilizer &amp; Amendments</a>
-      <a href="/tools-safety/" class="nav-link">Tools &amp; Yard Safety</a>
-    </nav>
 
-    <div class="search-wrap">
-      <input id="siteSearch" class="search" type="search" placeholder="Search GrizzlyGreens..." autocomplete="off">
-      <select id="searchScope" class="search-scope">
-        <option value="all" selected>All hubs</option>
-        <option value="lawn-basics">Lawn &amp; Grass Basics</option>
-        <option value="weeds-pests">Weeds, Pests &amp; Disease</option>
-        <option value="watering-irrigation">Watering, Irrigation &amp; Drainage</option>
-        <option value="soil-fertilizer">Soil, Fertilizer &amp; Amendments</option>
-        <option value="tools-safety">Tools &amp; Yard Safety</option>
-      </select>
-    </div>
-  </header>
+<header class="site-header">
+  <nav class="nav">
+    <a href="/" class="nav-link">Home</a>
+    <a href="/lawn-basics/" class="nav-link">Lawn &amp; Grass Basics</a>
+    <a href="/weeds-pests/" class="nav-link">Weeds, Pests &amp; Disease</a>
+    <a href="/watering-irrigation/" class="nav-link">Watering, Irrigation &amp; Drainage</a>
+    <a href="/soil-fertilizer/" class="nav-link">Soil, Fertilizer &amp; Amendments</a>
+    <a href="/tools-safety/" class="nav-link">Tools &amp; Yard Safety</a>
+  </nav>
 
-  <main class="container">
-    <nav class="topnav">
+  <div class="search-wrap">
+    <input
+      id="siteSearch"
+      class="search"
+      type="search"
+      placeholder="Search GrizzlyGreens..."
+      autocomplete="off"
+    >
+  </div>
+</header>
+
+<main class="container">
+  <nav class="topnav">
 <a class="navlink" href="/">Home</a>
 <a class="navlink active" href="/lawn-basics/">Lawn and Grass Basics</a>
 <a class="navlink" href="/weeds-pests/">Weeds, Pests, &amp; Lawn Diseases</a>
@@ -107,35 +116,36 @@
 </div>
 <div class="footer-copy">&copy; 2025 grizzlygreens.net</div>
 </footer>
-  </main>
+</main>
 
-  <footer class="site-footer">
-    <div class="footer-links">
-      <a href="/about.html">About</a>
-      <a href="/disclaimer.html">Disclaimer</a>
-      <a href="/privacy.html">Privacy Policy</a>
-      <a href="/sitemap.xml">Sitemap</a>
-    </div>
-    <div class="footer-copy">© 2025 GrizzlyGreens.net</div>
-  </footer>
+<footer class="site-footer">
+  <div class="footer-links">
+    <a href="/about.html">About</a>
+    <a href="/disclaimer.html">Disclaimer</a>
+    <a href="/privacy.html">Privacy Policy</a>
+    <a href="/sitemap.xml">Sitemap</a>
+  </div>
+  <div class="footer-copy">© 2025 GrizzlyGreens.net</div>
+</footer>
 
-  <script>
-  // Minimal search shell; real search index can come later.
-  (function () {
-    const q = document.getElementById("siteSearch");
-    const scope = document.getElementById("searchScope");
-    if (!q || !scope) return;
-    q.addEventListener("keydown", function (e) {
-      if (e.key !== "Enter") return;
-      const term = (q.value || "").trim();
-      if (!term) return;
-      // temporary: uses site: query so it works before you build a local index
-      const s = scope.value;
-      const hubPrefix = s === "all" ? "" : ("site:grizzlygreens.net/" + s + "/ ");
-      const url = "https://www.google.com/search?q=" + encodeURIComponent(hubPrefix + term);
-      window.open(url, "_blank");
-    });
-  })();
-  </script>
+<script>
+(function () {
+  const q = document.getElementById("siteSearch");
+  if (!q) return;
+
+  q.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    const term = (q.value || "").trim();
+    if (!term) return;
+
+    const url =
+      "https://www.google.com/search?q=" +
+      encodeURIComponent("site:grizzlygreens.net " + term);
+
+    window.open(url, "_blank");
+  });
+})();
+</script>
+
 </body>
 </html>
