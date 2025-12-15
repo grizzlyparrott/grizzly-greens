@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-# build_pages.py
+# build_pages.py — FINAL REWRITE
 #
-# Hard rules:
-# - base.html owns ALL chrome (nav/search/footer/scripts)
-# - This script injects ONLY page body into {{CONTENT}} (or {{CONTENT_HTML}})
-# - Hub cards show real previews (card_blurb -> description -> hub fallback)
-# - Cards have real links (title + button) and whole-card click support
-# - Generates sitemap.xml + search-index.json
-#
-# Inputs:
-# - base.html (repo root)
-# - pages_json/*.json (article objects)
-# - <hub_slug>/filenames.csv (title,filename)
+# Contract:
+# - base.html owns ALL chrome (nav/search/footer/scripts). This script injects ONLY {{CONTENT}}.
+# - Loads article JSON from pages_json/**.json (recursive).
+# - Hub cards come from /<hub_slug>/filenames.csv (title,filename), but card blurbs are pulled from matching JSON.
+# - Generates:
+#   - /index.html
+#   - /<hub_slug>/index.html
+#   - /<hub_slug>/<filename>.html
+#   - /sitemap.xml
+#   - /search-index.json
+# - Hard fails on duplicate output targets (same hub_slug + filename).
 
 from __future__ import annotations
 
@@ -101,14 +101,11 @@ def template_render(base_html: str, title: str, description: str, canonical: str
     return html
 
 def card_html(title: str, blurb: str, href: str) -> str:
-    # Whole card is clickable via overlay, but also has real links on title and button
     return f"""
 <article class="card card-link">
   <a class="card-hit" href="{href}" aria-label="{escape(title)}"></a>
-
   <h2><a class="card-title-link" href="{href}">{escape(title)}</a></h2>
   <p class="card-blurb">{escape(blurb)}</p>
-
   <a class="read-more" href="{href}">Read article</a>
 </article>
 """.strip()
@@ -118,25 +115,10 @@ def homepage_body() -> str:
     for slug, hub_title, desc in HUBS:
         cards.append(card_html(hub_title, desc, f"/{slug}/"))
     return f"""
-<h1>{escape(SITE_NAME)}</h1>
-<p>Fast, practical lawn and yard knowledge. No fluff.</p>
-
-<section class="cards">
-  {"".join(cards)}
+<section class="hero">
+  <h1>{escape(SITE_NAME)}</h1>
+  <p class="subtitle">Fast, practical lawn and yard knowledge. No fluff.</p>
 </section>
-""".strip()
-
-def hub_index_body(hub_slug: str, hub_title: str, hub_desc: str, items: List[Tuple[str, str]], lookup: Dict[Tuple[str, str], Dict]) -> str:
-    cards: List[str] = []
-    for t, fn in items:
-        fn2 = ensure_html_filename(fn)
-        href = f"/{hub_slug}/{fn2}"
-        a = lookup.get((hub_slug, fn2))
-        blurb = a["card_blurb"] if a else hub_desc
-        cards.append(card_html(t, blurb, href))
-    return f"""
-<h1>{escape(hub_title)}</h1>
-<p>{escape(hub_desc)}</p>
 
 <section class="cards">
   {"".join(cards)}
@@ -157,11 +139,29 @@ def read_hub_filenames_csv(hub_slug: str) -> List[Tuple[str, str]]:
                 rows.append((t, fn))
     return rows
 
+def hub_index_body(hub_slug: str, hub_title: str, hub_desc: str, items: List[Tuple[str, str]], lookup: Dict[Tuple[str, str], Dict]) -> str:
+    cards: List[str] = []
+    for t, fn in items:
+        fn2 = ensure_html_filename(fn)
+        href = f"/{hub_slug}/{fn2}"
+        a = lookup.get((hub_slug, fn2))
+        blurb = a["card_blurb"] if a else hub_desc
+        cards.append(card_html(t, blurb, href))
+    return f"""
+<section class="hub-hero">
+  <h1>{escape(hub_title)}</h1>
+  <p class="subtitle">{escape(hub_desc)}</p>
+</section>
+
+<section class="cards">
+  {"".join(cards)}
+</section>
+""".strip()
+
 def load_article_json_files() -> List[Dict]:
     objs: List[Dict] = []
     if not PAGES_JSON_DIR.exists():
         return objs
-
     for path in sorted(PAGES_JSON_DIR.rglob("*.json")):
         try:
             obj = json.loads(read_text(path))
@@ -170,9 +170,7 @@ def load_article_json_files() -> List[Dict]:
                 objs.append(obj)
         except Exception:
             continue
-
     return objs
-    
 
 def normalize_article_obj(obj: Dict) -> Optional[Dict]:
     hub_slug = normalize_slug(obj.get("hub_slug") or "")
@@ -227,6 +225,20 @@ def build_article_lookup(articles: List[Dict]) -> Dict[Tuple[str, str], Dict]:
         m[key] = a
     return m
 
+def enforce_no_duplicate_outputs(articles: List[Dict]) -> None:
+    seen: Dict[Tuple[str, str], Dict] = {}
+    for a in articles:
+        key = (a["hub_slug"], a["filename"])
+        if key in seen:
+            raise SystemExit(
+                "Duplicate article JSON detected for the same output:\n"
+                f"Output: {a['hub_slug']}/{a['filename']}\n"
+                f"First JSON:  {seen[key].get('_source_file','(unknown)')}\n"
+                f"Second JSON: {a.get('_source_file','(unknown)')}\n"
+                "Fix: delete one JSON or change filename/hub_slug so outputs are unique."
+            )
+        seen[key] = a
+
 def write_sitemap(urls: List[str]) -> None:
     clean = sorted({u.strip() for u in urls if u and u.strip()})
     items = [f"  <url><loc>{escape(u)}</loc></url>" for u in clean]
@@ -255,14 +267,12 @@ def main() -> int:
 
     raw_objs = load_article_json_files()
     articles: List[Dict] = []
-    skipped = 0
     for o in raw_objs:
         a = normalize_article_obj(o)
         if a:
             articles.append(a)
-        else:
-            skipped += 1
 
+    enforce_no_duplicate_outputs(articles)
     lookup = build_article_lookup(articles)
 
     home_url = f"{SITE_BASE}/"
@@ -292,7 +302,6 @@ def main() -> int:
         write_text(out_path(f"{slug}/index.html"), hub_html)
         urls_for_sitemap.append(hub_url)
         search_items.append({"t": hub_title, "u": f"/{slug}/", "d": hub_desc})
-        log(f"Built hub: {slug}/index.html")
 
     built = 0
     for a in articles:
@@ -312,9 +321,7 @@ def main() -> int:
     write_sitemap(urls_for_sitemap)
     write_search_index(search_items)
 
-    if VERBOSE:
-        print(f"Built hubs={len(HUBS)} articles={built} skipped_json={skipped} output_dir='{OUTPUT_DIR or ''}'")
-
+    log(f"built_articles={built} json_found={len(raw_objs)} output_dir='{OUTPUT_DIR or ''}'")
     return 0
 
 if __name__ == "__main__":
