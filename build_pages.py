@@ -1,31 +1,21 @@
 #!/usr/bin/env python3
 # build_pages.py
-# GrizzlyGreens static generator (GitHub Pages friendly)
 #
-# Contract (hard rules):
-# - base.html owns ALL chrome (nav/search/footer/scripts). This script MUST NOT inject nav/search/footer.
-# - This script only fills tokens: {{TITLE}}, {{DESCRIPTION}}, {{CANONICAL}}, {{GTAG}}, {{CONTENT}} (or {{CONTENT_HTML}})
-# - Generates:
-#   - /index.html
-#   - /<hub_slug>/index.html
-#   - /<hub_slug>/<filename>.html
-#   - /sitemap.xml
-#   - /search-index.json (for on-site autocomplete search)
+# base.html owns ALL chrome (nav/search/footer/scripts).
+# This script ONLY injects page bodies into {{CONTENT}} and fills tokens:
+# {{TITLE}}, {{DESCRIPTION}}, {{CANONICAL}}, {{GTAG}}, {{CONTENT}} (or {{CONTENT_HTML}})
 #
-# Inputs:
-# - base.html (repo root)
-# - pages_json/*.json (article objects)
-# - <hub_slug>/filenames.csv (hub index cards; header: title,filename)
+# Generates:
+# - /index.html
+# - /<hub_slug>/index.html
+# - /<hub_slug>/<filename>.html
+# - /sitemap.xml
+# - /search-index.json
 #
-# Env options:
-# - OUTPUT_DIR=dist     -> write output under dist/ (otherwise write into repo root)
-# - VERBOSE=1           -> print build logs
-# - GTAG='<script>...</script>'  -> raw gtag snippet inserted into {{GTAG}}
-# - GTAG_FILE=gtag.html -> alternatively load gtag snippet from a file (repo root)
-#
-# Notes:
-# - Search index is site-local; it never leaves the site. It powers /search.js fetching /search-index.json.
-# - This script does not create search.js; you should add that file yourself.
+# Hub card blurbs:
+# - Prefer per-article card_blurb from pages_json for matching filename.
+# - Fallback to per-article description.
+# - Final fallback: a generic hub blurb (only if JSON missing).
 
 from __future__ import annotations
 
@@ -50,7 +40,6 @@ SEARCH_INDEX_FILENAME = "search-index.json"
 OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "").strip())
 VERBOSE = os.environ.get("VERBOSE", "0").strip() == "1"
 
-# Hubs: folder slug -> display title + short description
 HUBS = [
     ("lawn-basics", "Lawn and Grass Basics", "Grass types, mowing basics, common problems, and practical fixes."),
     ("weeds-pests", "Weeds, Pests, & Lawn Diseases", "Identification first, then control: weeds, insects, and common lawn diseases."),
@@ -98,13 +87,11 @@ def load_gtag_snippet() -> str:
     raw = os.environ.get("GTAG", "")
     if raw.strip():
         return raw.rstrip()
-
     gtag_file = os.environ.get("GTAG_FILE", "").strip()
     if gtag_file:
         p = Path(gtag_file)
         if p.exists():
             return read_text(p).rstrip()
-
     return ""
 
 def template_render(base_html: str, title: str, description: str, canonical: str, content_html: str, gtag: str) -> str:
@@ -130,29 +117,10 @@ def homepage_body() -> str:
     cards: List[str] = []
     for slug, hub_title, desc in HUBS:
         cards.append(card_html(hub_title, desc, f"/{slug}/", "Open hub"))
-
     return f"""
 <header class="hero">
   <h1>{escape(SITE_NAME)}</h1>
   <p class="subtitle">Fast, practical lawn and yard knowledge. No fluff.</p>
-</header>
-
-<section class="grid">
-  {"".join(cards)}
-</section>
-""".strip()
-
-def hub_index_body(hub_slug: str, hub_title: str, hub_desc: str, items: List[Tuple[str, str]]) -> str:
-    cards: List[str] = []
-    for t, fn in items:
-        fn2 = ensure_html_filename(fn)
-        href = f"/{hub_slug}/{fn2}"
-        cards.append(card_html(t, f"Practical guide in {hub_title.lower()}.", href, "Open"))
-
-    return f"""
-<header class="hub-hero">
-  <h1>{escape(hub_title)}</h1>
-  <p class="subtitle">{escape(hub_desc)}</p>
 </header>
 
 <section class="grid">
@@ -211,6 +179,7 @@ def normalize_article_obj(obj: Dict) -> Optional[Dict]:
 
     title = (obj.get("title") or "").strip()
     description = (obj.get("description") or "").strip()
+    card_blurb = (obj.get("card_blurb") or obj.get("cardBlurb") or "").strip()
     content_html = obj.get("content_html") or obj.get("contentHtml") or ""
 
     if not title or not isinstance(content_html, str) or not content_html.strip():
@@ -218,6 +187,8 @@ def normalize_article_obj(obj: Dict) -> Optional[Dict]:
 
     if not description:
         description = title
+    if not card_blurb:
+        card_blurb = description
 
     return {
         "hub_slug": hub_slug,
@@ -226,9 +197,38 @@ def normalize_article_obj(obj: Dict) -> Optional[Dict]:
         "canonical": canonical,
         "title": title,
         "description": description,
+        "card_blurb": card_blurb,
         "content_html": content_html.strip(),
         "_source_file": obj.get("_source_file", ""),
     }
+
+def build_article_lookup(articles: List[Dict]) -> Dict[Tuple[str, str], Dict]:
+    # Key by (hub_slug, filename.html)
+    m: Dict[Tuple[str, str], Dict] = {}
+    for a in articles:
+        key = (a["hub_slug"], ensure_html_filename(a["filename"]))
+        m[key] = a
+    return m
+
+def hub_index_body(hub_slug: str, hub_title: str, hub_desc: str, items: List[Tuple[str, str]], lookup: Dict[Tuple[str, str], Dict]) -> str:
+    cards: List[str] = []
+    for t, fn in items:
+        fn2 = ensure_html_filename(fn)
+        href = f"/{hub_slug}/{fn2}"
+        a = lookup.get((hub_slug, fn2))
+        blurb = a["card_blurb"] if a else f"Practical guide in {hub_title.lower()}."
+        cards.append(card_html(t, blurb, href, "Open"))
+
+    return f"""
+<header class="hub-hero">
+  <h1>{escape(hub_title)}</h1>
+  <p class="subtitle">{escape(hub_desc)}</p>
+</header>
+
+<section class="grid">
+  {"".join(cards)}
+</section>
+""".strip()
 
 def write_sitemap(urls: List[str]) -> None:
     clean = sorted({u.strip() for u in urls if u and u.strip()})
@@ -243,10 +243,7 @@ def write_sitemap(urls: List[str]) -> None:
     write_text(out_path(SITEMAP_FILENAME), xml)
 
 def write_search_index(items: List[Dict[str, str]]) -> None:
-    payload = {
-        "items": items,
-        "generated": str(date.today()),
-    }
+    payload = {"items": items, "generated": str(date.today())}
     write_text(out_path(SEARCH_INDEX_FILENAME), json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
 
 def main() -> int:
@@ -258,6 +255,18 @@ def main() -> int:
 
     urls_for_sitemap: List[str] = []
     search_items: List[Dict[str, str]] = []
+
+    # Load + normalize articles FIRST so hubs can pull real card blurbs
+    raw_objs = load_article_json_files()
+    articles: List[Dict] = []
+    skipped = 0
+    for o in raw_objs:
+        a = normalize_article_obj(o)
+        if a:
+            articles.append(a)
+        else:
+            skipped += 1
+    lookup = build_article_lookup(articles)
 
     # Homepage
     home_url = f"{SITE_BASE}/"
@@ -282,7 +291,7 @@ def main() -> int:
             title=f"{hub_title} - {SITE_NAME}",
             description=hub_desc,
             canonical=hub_url,
-            content_html=hub_index_body(slug, hub_title, hub_desc, items),
+            content_html=hub_index_body(slug, hub_title, hub_desc, items, lookup),
             gtag=gtag,
         )
         write_text(out_path(f"{slug}/index.html"), hub_html)
@@ -291,16 +300,8 @@ def main() -> int:
         log(f"Built hub: {slug}/index.html")
 
     # Article pages
-    raw_objs = load_article_json_files()
     built = 0
-    skipped = 0
-
-    for o in raw_objs:
-        a = normalize_article_obj(o)
-        if not a:
-            skipped += 1
-            continue
-
+    for a in articles:
         page_html = template_render(
             base_html=base_html,
             title=a["title"],
@@ -318,7 +319,7 @@ def main() -> int:
     write_search_index(search_items)
 
     if VERBOSE:
-        print(f"Built hubs={len(HUBS)} articles={built} skipped={skipped} output_dir='{OUTPUT_DIR or ''}'")
+        print(f"Built hubs={len(HUBS)} articles={built} skipped_json={skipped} output_dir='{OUTPUT_DIR or ''}'")
     else:
         if built == 0 and raw_objs:
             print("Built 0 articles. JSON missing required fields: hub_slug, filename, title, content_html.")
