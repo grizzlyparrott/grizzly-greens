@@ -1,0 +1,7 @@
+{
+  "title": "Test Page",
+  "description": "Test page to verify the build pipeline.",
+  "canonical": "https://grizzlygreens.net/test-page.html",
+  "output_path": "test-page.html",
+  "content_html": "<h1>Test Page</h1><p>If you can see this, the generator works.</p>"
+}
