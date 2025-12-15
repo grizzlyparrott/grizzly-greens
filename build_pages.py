@@ -161,15 +161,18 @@ def load_article_json_files() -> List[Dict]:
     objs: List[Dict] = []
     if not PAGES_JSON_DIR.exists():
         return objs
-    for path in sorted(PAGES_JSON_DIR.glob("*.json")):
+
+    for path in sorted(PAGES_JSON_DIR.rglob("*.json")):
         try:
             obj = json.loads(read_text(path))
             if isinstance(obj, dict):
                 obj["_source_file"] = str(path)
                 objs.append(obj)
         except Exception:
-            log(f"Skipping bad JSON: {path}")
+            continue
+
     return objs
+    
 
 def normalize_article_obj(obj: Dict) -> Optional[Dict]:
     hub_slug = normalize_slug(obj.get("hub_slug") or "")
