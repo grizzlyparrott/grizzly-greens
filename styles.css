@@ -1,0 +1,78 @@
+:root{
+  --bg:#ffffff;
+  --text:#0f172a;
+  --muted:#475569;
+  --border:#e2e8f0;
+  --card:#f8fafc;
+  --primary:#166534;   /* calm green */
+  --accent:#0f766e;    /* muted teal */
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  line-height:1.6;
+}
+header, main, footer{
+  max-width:980px;
+  margin:0 auto;
+  padding:16px;
+}
+header{border-bottom:1px solid var(--border)}
+footer{border-top:1px solid var(--border); color:var(--muted); font-size:14px}
+
+nav a{
+  color:var(--text);
+  text-decoration:none;
+  margin-right:12px;
+}
+nav a:hover{color:var(--primary); text-decoration:underline}
+
+.searchbar{margin-top:10px}
+.searchbar input{
+  width:100%;
+  padding:10px 12px;
+  font-size:16px;
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+
+h1{font-size:32px; margin:8px 0 10px}
+h2{font-size:20px; margin:0 0 8px}
+p{margin:0 0 12px}
+
+/* Hub cards */
+.cards{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  margin-top:14px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+}
+.card a{color:var(--text); text-decoration:none}
+.card a:hover{color:var(--primary); text-decoration:underline}
+
+.card-blurb{color:var(--muted); margin:6px 0 10px}
+.card-tags{
+  color:var(--muted);
+  font-size:13px;
+  margin:0 0 12px;
+}
+.read-more{
+  display:inline-block;
+  padding:8px 12px;
+  border-radius:10px;
+  background:var(--primary);
+  color:#ffffff !important;
+  text-decoration:none;
+  font-weight:600;
+}
+.read-more:hover{filter:brightness(0.95)}
