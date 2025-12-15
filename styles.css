@@ -1,20 +1,19 @@
 :root{
   --bg:#0b1220;
   --surface:#0f172a;
-  --surface-2:#111c34;
+  --surface-2:#111b2e;
   --card:#0f1a33;
   --text:#e5e7eb;
   --muted:#a7b0c0;
   --border:rgba(255,255,255,0.10);
-  --shadow:0 10px 30px rgba(0,0,0,0.35);
+  --shadow:0 14px 36px rgba(0,0,0,0.45);
 
   --primary:#22c55e;
   --primary-2:#16a34a;
-  --focus:rgba(34,197,94,0.30);
+  --focus:rgba(34,197,94,0.28);
 
   --radius:16px;
   --radius-sm:12px;
-
   --max:980px;
 }
 
@@ -22,29 +21,30 @@
 html,body{height:100%}
 body{
   margin:0;
-  background:radial-gradient(1200px 700px at 20% -10%, rgba(34,197,94,0.18), transparent 55%),
-             radial-gradient(900px 600px at 85% 0%, rgba(15,118,110,0.18), transparent 55%),
-             var(--bg);
+  background:var(--bg);
   color:var(--text);
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   line-height:1.55;
 }
 
+/* Layout */
 header, main, footer{
   max-width:var(--max);
   margin:0 auto;
   padding:18px 16px;
 }
 
+/* Header (clean, no clunky blobs) */
 header{
   position:sticky;
   top:0;
-  background:linear-gradient(to bottom, rgba(11,18,32,0.92), rgba(11,18,32,0.70));
+  z-index:9000; /* keeps header above page */
+  background:rgba(11,18,32,0.92);
   backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border);
-  z-index:20;
 }
 
+/* Footer */
 footer{
   border-top:1px solid var(--border);
   color:var(--muted);
@@ -66,7 +66,7 @@ a:hover{color:var(--primary)}
 .nav-link{
   color:var(--text);
   text-decoration:none;
-  font-weight:600;
+  font-weight:700;
   font-size:14px;
   opacity:0.92;
   padding:6px 8px;
@@ -79,7 +79,11 @@ a:hover{color:var(--primary)}
 }
 
 /* Search */
-.search-wrap{position:relative; margin-top:12px}
+.search-wrap{
+  position:relative;
+  margin-top:12px;
+  z-index:999999; /* stacking context for dropdown */
+}
 .search{
   width:100%;
   padding:12px 14px;
@@ -96,15 +100,15 @@ a:hover{color:var(--primary)}
   box-shadow:0 0 0 4px var(--focus);
 }
 
+/* Autocomplete dropdown MUST be on top of everything */
 .search-results{
   position:absolute;
-  top:100%;
+  top:calc(100% + 8px);
   left:0;
   right:0;
-  z-index:50;
-  margin-top:8px;
+  z-index:2147483647; /* highest practical */
   background:var(--surface);
-  border:1px solid var(--border);
+  border:1px solid rgba(255,255,255,0.14);
   border-radius:14px;
   overflow:hidden;
   display:none;
@@ -115,12 +119,12 @@ a:hover{color:var(--primary)}
 .search-item{
   padding:12px 14px;
   cursor:pointer;
-  border-top:1px solid var(--border);
+  border-top:1px solid rgba(255,255,255,0.10);
 }
 .search-item:first-child{border-top:none}
 .search-item:hover,
 .search-item.active{background:rgba(255,255,255,0.06)}
-.search-item .t{font-weight:700}
+.search-item .t{font-weight:800}
 .search-item .d{color:var(--muted); font-size:0.92rem; margin-top:2px}
 .search-empty{padding:12px 14px; color:var(--muted)}
 
@@ -129,7 +133,7 @@ h1{
   font-size:44px;
   line-height:1.08;
   letter-spacing:-0.02em;
-  margin:18px 0 10px;
+  margin:10px 0 10px;
 }
 h2{
   font-size:22px;
@@ -139,42 +143,39 @@ h2{
 p{margin:0 0 14px; color:rgba(229,231,235,0.92)}
 .subtitle{color:var(--muted)}
 
-/* Page sections */
-main.container{
-  padding-top:26px;
-}
+/* Hero / hub header (less “off”) */
 .hero, .hub-hero{
-  padding:16px 0 10px;
-  border-bottom:1px solid var(--border);
-  margin-bottom:18px;
+  padding:18px 0 12px;
+  margin:0 0 16px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
 }
-.hero p, .hub-hero p{max-width:70ch}
+.hero p, .hub-hero p{max-width:72ch}
 
-/* Cards grid */
+/* Grid */
 .cards, .grid{
   display:grid;
   grid-template-columns:1fr;
   gap:14px;
-  margin-top:18px;
+  margin-top:16px;
 }
 
-/* Card */
+/* Cards (less slabby, more crisp) */
 .card{
   position:relative;
-  background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
-  border:1px solid var(--border);
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.10);
   border-radius:var(--radius);
   padding:16px;
-  box-shadow:0 0 0 rgba(0,0,0,0);
   transition:transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 .card:hover{
   transform:translateY(-2px);
   box-shadow:var(--shadow);
-  border-color:rgba(34,197,94,0.30);
-  background:linear-gradient(180deg, rgba(34,197,94,0.10), rgba(255,255,255,0.03));
+  border-color:rgba(34,197,94,0.18);
+  background:rgba(255,255,255,0.055);
 }
 
+/* Whole-card clickable overlay */
 .card-link{position:relative}
 .card-hit{
   position:absolute;
@@ -185,15 +186,14 @@ main.container{
 
 /* Keep real links above overlay */
 .card-title-link,
-.read-more,
-.card-cta{
+.read-more{
   position:relative;
   z-index:2;
 }
 
 .card-title-link{
   text-decoration:none;
-  font-weight:800;
+  font-weight:900;
 }
 .card-title-link:hover{text-decoration:underline}
 
@@ -201,7 +201,6 @@ main.container{
 .card-text{
   color:rgba(229,231,235,0.88);
   margin:6px 0 14px;
-  max-width:95ch;
 }
 
 /* CTA */
@@ -216,11 +215,11 @@ main.container{
   text-decoration:none;
   font-weight:900;
   letter-spacing:0.01em;
-  box-shadow:0 10px 18px rgba(34,197,94,0.18);
+  box-shadow:0 10px 18px rgba(34,197,94,0.16);
 }
 .read-more:hover{
   filter:brightness(1.02);
-  box-shadow:0 14px 22px rgba(34,197,94,0.22);
+  box-shadow:0 14px 22px rgba(34,197,94,0.20);
 }
 
 /* Footer links */
@@ -231,7 +230,7 @@ main.container{
 }
 .footer-links a:hover{color:var(--text); text-decoration:underline}
 
-/* Desktop improvements */
+/* Desktop */
 @media (min-width:860px){
   .cards, .grid{grid-template-columns:1fr 1fr}
   header, main, footer{padding-left:18px; padding-right:18px}
