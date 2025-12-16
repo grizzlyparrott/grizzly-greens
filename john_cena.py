@@ -224,10 +224,45 @@ def choose_internal_links(
 
     return chosen[:total]
 
+# ADDED: inline link slot support (keeps old behavior as fallback if slots are not present)
+INLINE_LINK_SLOTS = [
+    "{{INTERNAL_LINK_SLOT_1}}",
+    "{{INTERNAL_LINK_SLOT_2}}",
+    "{{INTERNAL_LINK_SLOT_3}}",
+    "{{INTERNAL_LINK_SLOT_4}}",
+]
+
+def render_inline_link(title: str, href: str) -> str:
+    return f'<a href="{href}">{escape(title)}</a>'
+
+def inject_inline_links_via_slots(content_html: str, links: List[Tuple[str, str]]) -> Tuple[str, int]:
+    html = (content_html or "")
+    if not html or not links:
+        return html, 0
+    inserted = 0
+    for slot, (title, href) in zip(INLINE_LINK_SLOTS, links):
+        if slot in html:
+            html = html.replace(slot, render_inline_link(title, href), 1)
+            inserted += 1
+    return html, inserted
+
 def inject_links_inside_article(content_html: str, links: List[Tuple[str, str]]) -> str:
     if not links:
         return content_html
 
+    html = (content_html or "").rstrip()
+    if not html:
+        return html
+
+    # New preferred behavior: replace inline slots inside paragraphs
+    html2, inserted = inject_inline_links_via_slots(html, links)
+    if inserted > 0:
+        # Remove any unused slots so they never ship
+        for slot in INLINE_LINK_SLOTS:
+            html2 = html2.replace(slot, "")
+        return html2
+
+    # Fallback: keep your existing "Related guides" block behavior unchanged
     li = "".join([f'<li><a href="{href}">{escape(title)}</a></li>' for (title, href) in links])
     block = (
         '<section class="related-guides">'
@@ -236,24 +271,20 @@ def inject_links_inside_article(content_html: str, links: List[Tuple[str, str]])
         '</section>'
     )
 
-    html = (content_html or "").rstrip()
-    if not html:
-        return html
-
     # Insert after first paragraph if possible
-    m = re.search(r"</p\s*>", html, flags=re.IGNORECASE)
+    m = re.search(r"</p\s*>", html2, flags=re.IGNORECASE)
     if m:
         i = m.end()
-        return html[:i] + "\n" + block + "\n" + html[i:]
+        return html2[:i] + "\n" + block + "\n" + html2[i:]
 
     # Else insert after first h1 if present
-    m = re.search(r"</h1\s*>", html, flags=re.IGNORECASE)
+    m = re.search(r"</h1\s*>", html2, flags=re.IGNORECASE)
     if m:
         i = m.end()
-        return html[:i] + "\n" + block + "\n" + html[i:]
+        return html2[:i] + "\n" + block + "\n" + html2[i:]
 
     # Else append
-    return html + "\n" + block + "\n"
+    return html2 + "\n" + block + "\n"
 
 def card_html(title: str, blurb: str, href: str) -> str:
     return f"""
