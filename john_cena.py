@@ -19,6 +19,11 @@
 # - Never dumps link lists
 # - Never injects links into random paragraphs to meet quotas
 # - If slots are present, replaces them; if slots are missing, does nothing (article stays clean)
+#
+# ADDED (ONLY what’s needed for your new JSON fields):
+# - Reads "internal_link_slots" and "internal_link_slot_plan" from article JSON (if present)
+# - Uses slot_plan.section_hint + anchor_type to assign the most relevant chosen link to each slot
+# - Still slot-based only; still no fallbacks that insert blocks/lists
 
 from __future__ import annotations
 
@@ -273,7 +278,7 @@ def choose_internal_links(
 
     return chosen[:total]
 
-# ADDED: inline link slot support (keeps old behavior as fallback if slots are not present)
+# Inline link slot support (slot-based only)
 INLINE_LINK_SLOTS = [
     "{{INTERNAL_LINK_SLOT_1}}",
     "{{INTERNAL_LINK_SLOT_2}}",
@@ -284,18 +289,104 @@ INLINE_LINK_SLOTS = [
 def render_inline_link(title: str, href: str) -> str:
     return f'<a href="{href}">{escape(title)}</a>'
 
-def inject_inline_links_via_slots(content_html: str, links: List[Tuple[str, str]]) -> Tuple[str, int]:
+def _parse_slot_plan(obj: Dict[str, Any]) -> List[Dict[str, str]]:
+    plan = obj.get("internal_link_slot_plan")
+    if not isinstance(plan, list):
+        return []
+    out: List[Dict[str, str]] = []
+    for item in plan:
+        if not isinstance(item, dict):
+            continue
+        slot = (item.get("slot") or "").strip()
+        if slot not in INLINE_LINK_SLOTS:
+            continue
+        out.append({
+            "slot": slot,
+            "anchor_type": (item.get("anchor_type") or "").strip(),
+            "placement": (item.get("placement") or "").strip(),
+            "section_hint": (item.get("section_hint") or "").strip(),
+        })
+    return out
+
+def _assign_links_to_slots(
+    links: List[Tuple[str, str]],
+    slot_plan: List[Dict[str, str]],
+) -> Dict[str, Tuple[str, str]]:
+    # If no plan, keep existing behavior: slot order matches link order.
+    if not slot_plan:
+        mapping: Dict[str, Tuple[str, str]] = {}
+        for slot, (t, href) in zip(INLINE_LINK_SLOTS, links or []):
+            mapping[slot] = (t, href)
+        return mapping
+
+    unused = list(links or [])
+    mapping: Dict[str, Tuple[str, str]] = {}
+
+    for entry in slot_plan:
+        slot = entry.get("slot", "")
+        hint = entry.get("section_hint", "")
+        anchor_type = entry.get("anchor_type", "")
+
+        hint_terms = _terms(" ".join([hint, anchor_type]))
+        best_i = -1
+        best_score = -1.0
+        best_inter = -1
+
+        for i, (t, href) in enumerate(unused):
+            cand_terms = _terms(t)
+            inter = _overlap_count(hint_terms, cand_terms)
+            score = _overlap_score(hint_terms, cand_terms) if hint_terms else 0.0
+
+            # If hint_terms is empty, don’t pretend relevance; just take first unused.
+            if not hint_terms:
+                best_i = 0
+                break
+
+            if score > best_score or (score == best_score and inter > best_inter):
+                best_score = score
+                best_inter = inter
+                best_i = i
+
+        if best_i >= 0 and unused:
+            chosen = unused.pop(best_i)
+            mapping[slot] = chosen
+
+    # Fill remaining slots (if any) with leftover links, in stable order.
+    for slot in INLINE_LINK_SLOTS:
+        if slot in mapping:
+            continue
+        if not unused:
+            break
+        mapping[slot] = unused.pop(0)
+
+    return mapping
+
+def inject_inline_links_via_slots(
+    content_html: str,
+    links: List[Tuple[str, str]],
+    slot_plan: Optional[List[Dict[str, str]]] = None,
+) -> Tuple[str, int]:
     html = (content_html or "")
     if not html or not links:
         return html, 0
+
+    slot_to_link = _assign_links_to_slots(links, slot_plan or [])
     inserted = 0
-    for slot, (title, href) in zip(INLINE_LINK_SLOTS, links):
-        if slot in html:
+
+    # Replace only where the slot exists in the HTML (still slot-only, no insertion).
+    for slot in INLINE_LINK_SLOTS:
+        if slot in html and slot in slot_to_link:
+            title, href = slot_to_link[slot]
             html = html.replace(slot, render_inline_link(title, href), 1)
             inserted += 1
+
     return html, inserted
 
-def inject_links_inside_article(content_html: str, links: List[Tuple[str, str]]) -> str:
+def inject_links_inside_article(
+    content_html: str,
+    links: List[Tuple[str, str]],
+    slot_plan: Optional[List[Dict[str, str]]] = None,
+) -> str:
     # Pipeline rule:
     # - Never invent "Related guides" sections
     # - Never dump link lists
@@ -309,7 +400,7 @@ def inject_links_inside_article(content_html: str, links: List[Tuple[str, str]])
     if not has_slots:
         return html
 
-    html2, _inserted = inject_inline_links_via_slots(html, links or [])
+    html2, _inserted = inject_inline_links_via_slots(html, links or [], slot_plan=slot_plan)
     for slot in INLINE_LINK_SLOTS:
         html2 = html2.replace(slot, "")
     return html2
@@ -421,6 +512,12 @@ def normalize_article_obj(obj: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if not card_blurb:
         card_blurb = description
 
+    # ADDED: slot plan fields (optional; if missing, everything still works)
+    internal_link_slots = obj.get("internal_link_slots")
+    if not isinstance(internal_link_slots, int):
+        internal_link_slots = None
+    slot_plan = _parse_slot_plan(obj)
+
     return {
         "hub_slug": hub_slug,
         "filename": filename_html,
@@ -430,6 +527,8 @@ def normalize_article_obj(obj: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "description": description,
         "card_blurb": card_blurb,
         "content_html": content_html.strip(),
+        "internal_link_slots": internal_link_slots,
+        "internal_link_slot_plan": slot_plan,
         "_source_file": obj.get("_source_file", ""),
     }
 
@@ -540,7 +639,11 @@ def main() -> int:
         if links:
             injected_count += 1
 
-        content_with_links = inject_links_inside_article(a["content_html"], links)
+        content_with_links = inject_links_inside_article(
+            a["content_html"],
+            links,
+            slot_plan=a.get("internal_link_slot_plan") or [],
+        )
 
         page_html = template_render(
             base_html=base_html,
