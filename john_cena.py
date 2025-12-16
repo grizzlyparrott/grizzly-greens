@@ -14,12 +14,11 @@
 #
 # Key behaviors:
 # - Converts ".json" -> ".html" (never ".json.html")
-# - Internal links injected inside the article HTML via {{INTERNAL_LINK_SLOT_1..4}} ONLY
-# - Never invents “Related guides” sections
+# - Internal links injected via {{INTERNAL_LINK_SLOT_1}}..{{INTERNAL_LINK_SLOT_4}} only
+# - Never creates "Related guides" sections
 # - Never dumps link lists
-# - Never injects links into random paragraphs just to meet a quota
-# - If slots exist, replaces them with best-matching links from filenames.csv (relevance-gated)
-# - If slots are missing (or nothing is relevant enough), leaves the article clean
+# - Never injects links into random paragraphs to meet quotas
+# - If slots are present, replaces them; if slots are missing, does nothing (article stays clean)
 
 from __future__ import annotations
 
@@ -47,269 +46,276 @@ OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "").strip())  # optional override
 VERBOSE = os.environ.get("VERBOSE", "0").strip() == "1"
 
 HUBS: List[Tuple[str, str, str]] = [
-  ("lawn-basics", "Lawn and Grass Basics", "Grass types, mowing basics, common problems, and practical fixes."),
-  ("weeds-pests", "Weeds, Pests, & Lawn Diseases", "Identification first, then control: weeds, insects, and common lawn diseases."),
-  ("watering-irrigation", "Watering, Irrigation & Drainage", "Watering schedules, sprinkler setups, drainage issues, and fixes that work."),
-  ("soil-fertilizer", "Soil, Fertilizer & Amendments", "Soil basics, nutrients, pH, and amendments that actually move the needle."),
-  ("tools-safety", "Tools, Equipment & Yard Safety", "Tools that matter, maintenance, and safety rules that prevent dumb injuries."),
+    ("lawn-basics", "Lawn and Grass Basics", "Grass types, mowing basics, common problems, and practical fixes."),
+    ("weeds-pests", "Weeds, Pests, & Lawn Diseases", "Identification first, then control: weeds, insects, and common lawn diseases."),
+    ("watering-irrigation", "Watering, Irrigation & Drainage", "Watering schedules, sprinkler setups, drainage issues, and fixes that work."),
+    ("soil-fertilizer", "Soil, Fertilizer & Amendments", "Soil basics, nutrients, pH, and amendments that actually move the needle."),
+    ("tools-safety", "Tools, Equipment & Yard Safety", "Tools that matter, maintenance, and safety rules that prevent dumb injuries."),
 ]
 
 TITLE_NUM_PREFIX_RE = re.compile(r"^\s*\d+\.\s*")
 
-def log(msg: str) -> None:
-  if VERBOSE:
-    print(msg)
-
-def out_path(rel: str) -> Path:
-  rel = (rel or "").lstrip("/")
-  if str(OUTPUT_DIR):
-    return OUTPUT_DIR / rel
-  return Path(rel)
-
-def read_text(path: Path) -> str:
-  return path.read_text(encoding="utf-8")
-
-def write_if_changed(path: Path, content: str, stats: Dict[str, int]) -> None:
-  path.parent.mkdir(parents=True, exist_ok=True)
-  if path.exists():
-    old = path.read_text(encoding="utf-8")
-    if old == content:
-      stats["skipped"] += 1
-      return
-  path.write_text(content, encoding="utf-8", newline="\n")
-  stats["written"] += 1
-
-def normalize_slug(s: str) -> str:
-  return (s or "").strip().strip("/")
-
-def clean_title(t: str) -> str:
-  t = (t or "").strip()
-  t = TITLE_NUM_PREFIX_RE.sub("", t)
-  return t.strip()
-
-def ensure_html_filename(name: str) -> str:
-  name = (name or "").strip()
-  lower = name.lower()
-  if lower.endswith(".html"):
-    return name
-  if lower.endswith(".json"):
-    return name[:-5] + ".html"
-  return name + ".html"
-
-def build_output_path(hub_slug: str, filename: str) -> str:
-  hub_slug = normalize_slug(hub_slug)
-  filename = (filename or "").strip().lstrip("/")
-  if "/" in filename:
-    filename = filename.split("/")[-1]
-  filename = ensure_html_filename(filename)
-  return f"{hub_slug}/{filename}"
-
-def build_canonical(output_path_str: str) -> str:
-  return f"{SITE_BASE}/{(output_path_str or '').lstrip('/')}"
-
-def load_gtag_snippet() -> str:
-  raw = os.environ.get("GTAG", "")
-  if raw.strip():
-    return raw.rstrip()
-  gtag_file = os.environ.get("GTAG_FILE", "").strip()
-  if gtag_file:
-    p = Path(gtag_file)
-    if p.exists():
-      return read_text(p).rstrip()
-  return ""
-
-def template_render(base_html: str, title: str, description: str, canonical: str, content_html: str, gtag: str) -> str:
-  html = base_html
-  html = html.replace("{{TITLE}}", escape(title or ""))
-  html = html.replace("{{DESCRIPTION}}", escape(description or ""))
-  html = html.replace("{{CANONICAL}}", escape(canonical or ""))
-  html = html.replace("{{GTAG}}", gtag or "")
-  html = html.replace("{{CONTENT_HTML}}", content_html or "")
-  html = html.replace("{{CONTENT}}", content_html or "")
-  return html
-
-def stable_rng(seed_text: str) -> random.Random:
-  h = hashlib.sha256(seed_text.encode("utf-8")).hexdigest()
-  seed_int = int(h[:16], 16)
-  return random.Random(seed_int)
-
-def read_hub_filenames_csv(hub_slug: str) -> List[Tuple[str, str]]:
-  csv_path = Path(hub_slug) / "filenames.csv"
-  if not csv_path.exists():
-    return []
-  rows: List[Tuple[str, str]] = []
-  with csv_path.open("r", encoding="utf-8", newline="") as f:
-    reader = csv.DictReader(f)
-    for r in reader:
-      t = clean_title((r.get("title") or "").strip())
-      fn = (r.get("filename") or "").strip()
-      if not t or not fn:
-        continue
-      rows.append((t, ensure_html_filename(fn)))
-  return rows
-
-def load_internal_link_db_from_csv() -> Dict[str, List[Tuple[str, str]]]:
-  db: Dict[str, List[Tuple[str, str]]] = {}
-  for hub_slug, _hub_title, _hub_desc in HUBS:
-    db[hub_slug] = read_hub_filenames_csv(hub_slug)
-  return db
-
-_STOPWORDS = {
-  "a","an","and","are","as","at","be","but","by","for","from","has","have","how","if","in","into","is","it",
-  "its","most","of","on","or","our","should","so","than","that","the","their","then","this","to","too","vs",
-  "what","when","where","which","why","with","without","your","yours"
+# Internal linking relevance helpers (slot-based only)
+_COMMON_IRRELEVANT = {
+    "grass", "lawn", "lawns", "yard", "yards", "turf",
+    "soil", "soils", "water", "watering", "weeds", "weed",
+    "pest", "pests", "disease", "diseases",
+    "tool", "tools", "equipment", "safety",
+    "care", "basic", "basics", "guide", "guides",
+    "best", "better", "worst", "common", "why", "how", "what", "when",
 }
 
-_WORD_RE = re.compile(r"[a-z0-9]+")
+_WORD_RE = re.compile(r"[a-z0-9]{3,}")
+_H23_RE = re.compile(r"<h[23][^>]*>(.*?)</h[23]>", re.IGNORECASE | re.DOTALL)
+_TAG_RE = re.compile(r"<[^>]+>")
 
-def _terms(s: str) -> List[str]:
-  s = (s or "").lower()
-  words = _WORD_RE.findall(s)
-  out: List[str] = []
-  for w in words:
-    if len(w) < 3:
-      continue
-    if w in _STOPWORDS:
-      continue
-    out.append(w)
-  return out
+def _terms(text: str) -> List[str]:
+    words = _WORD_RE.findall((text or "").lower())
+    return [w for w in words if w not in _COMMON_IRRELEVANT]
 
-_H_TAG_RE = re.compile(r"<h[23][^>]*>(.*?)</h[23]>", re.IGNORECASE | re.DOTALL)
-_TAG_STRIP_RE = re.compile(r"<[^>]+>")
+def _extract_h2_h3_text(content_html: str) -> str:
+    html = content_html or ""
+    parts = _H23_RE.findall(html)
+    if not parts:
+        return ""
+    cleaned: List[str] = []
+    for p in parts[:10]:
+        p = _TAG_RE.sub("", p)
+        p = " ".join(p.split())
+        if p:
+            cleaned.append(p)
+    return " ".join(cleaned)
 
-def _extract_heading_text(content_html: str) -> str:
-  html = content_html or ""
-  parts = _H_TAG_RE.findall(html)
-  if not parts:
-    return ""
-  cleaned: List[str] = []
-  for p in parts[:10]:
-    p = _TAG_STRIP_RE.sub("", p)
-    p = " ".join(p.split())
-    if p:
-      cleaned.append(p)
-  return " ".join(cleaned)
+def _overlap_count(query_terms: List[str], candidate_terms: List[str]) -> int:
+    if not query_terms or not candidate_terms:
+        return 0
+    return len(set(query_terms) & set(candidate_terms))
 
 def _overlap_score(query_terms: List[str], candidate_terms: List[str]) -> float:
-  if not query_terms or not candidate_terms:
-    return 0.0
-  qs = set(query_terms)
-  cs = set(candidate_terms)
-  inter = len(qs & cs)
-  if inter == 0:
-    return 0.0
-  return inter / (1.0 + 0.35 * len(cs))
+    if not query_terms or not candidate_terms:
+        return 0.0
+    inter = _overlap_count(query_terms, candidate_terms)
+    if inter <= 0:
+        return 0.0
+    return inter / (1.0 + 0.25 * len(set(candidate_terms)))
+
+def log(msg: str) -> None:
+    if VERBOSE:
+        print(msg)
+
+def out_path(rel: str) -> Path:
+    rel = (rel or "").lstrip("/")
+    if str(OUTPUT_DIR):
+        return OUTPUT_DIR / rel
+    return Path(rel)
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+def write_if_changed(path: Path, content: str, stats: Dict[str, int]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        old = path.read_text(encoding="utf-8")
+        if old == content:
+            stats["skipped"] += 1
+            return
+    path.write_text(content, encoding="utf-8", newline="\n")
+    stats["written"] += 1
+
+def normalize_slug(s: str) -> str:
+    return (s or "").strip().strip("/")
+
+def clean_title(t: str) -> str:
+    t = (t or "").strip()
+    t = TITLE_NUM_PREFIX_RE.sub("", t)
+    return t.strip()
+
+def ensure_html_filename(name: str) -> str:
+    name = (name or "").strip()
+    lower = name.lower()
+    if lower.endswith(".html"):
+        return name
+    if lower.endswith(".json"):
+        return name[:-5] + ".html"
+    return name + ".html"
+
+def build_output_path(hub_slug: str, filename: str) -> str:
+    hub_slug = normalize_slug(hub_slug)
+    filename = (filename or "").strip().lstrip("/")
+    if "/" in filename:
+        filename = filename.split("/")[-1]
+    filename = ensure_html_filename(filename)
+    return f"{hub_slug}/{filename}"
+
+def build_canonical(output_path_str: str) -> str:
+    return f"{SITE_BASE}/{(output_path_str or '').lstrip('/')}"
+
+def load_gtag_snippet() -> str:
+    raw = os.environ.get("GTAG", "")
+    if raw.strip():
+        return raw.rstrip()
+    gtag_file = os.environ.get("GTAG_FILE", "").strip()
+    if gtag_file:
+        p = Path(gtag_file)
+        if p.exists():
+            return read_text(p).rstrip()
+    return ""
+
+def template_render(base_html: str, title: str, description: str, canonical: str, content_html: str, gtag: str) -> str:
+    html = base_html
+    html = html.replace("{{TITLE}}", escape(title or ""))
+    html = html.replace("{{DESCRIPTION}}", escape(description or ""))
+    html = html.replace("{{CANONICAL}}", escape(canonical or ""))
+    html = html.replace("{{GTAG}}", gtag or "")
+    html = html.replace("{{CONTENT_HTML}}", content_html or "")
+    html = html.replace("{{CONTENT}}", content_html or "")
+    return html
+
+def stable_rng(seed_text: str) -> random.Random:
+    h = hashlib.sha256(seed_text.encode("utf-8")).hexdigest()
+    seed_int = int(h[:16], 16)
+    return random.Random(seed_int)
+
+def read_hub_filenames_csv(hub_slug: str) -> List[Tuple[str, str]]:
+    # Reads /<hub_slug>/filenames.csv with header: title,filename
+    csv_path = Path(hub_slug) / "filenames.csv"
+    if not csv_path.exists():
+        return []
+    rows: List[Tuple[str, str]] = []
+    with csv_path.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for r in reader:
+            t = clean_title((r.get("title") or "").strip())
+            fn = (r.get("filename") or "").strip()
+            if not t or not fn:
+                continue
+            rows.append((t, ensure_html_filename(fn)))
+    return rows
+
+def load_internal_link_db_from_csv() -> Dict[str, List[Tuple[str, str]]]:
+    # Master DB of linkable pages per hub, from filenames.csv (your real setup)
+    db: Dict[str, List[Tuple[str, str]]] = {}
+    for hub_slug, _hub_title, _hub_desc in HUBS:
+        db[hub_slug] = read_hub_filenames_csv(hub_slug)
+    return db
 
 def choose_internal_links(
-  hub_slug: str,
-  out_filename_html: str,
-  link_db: Dict[str, List[Tuple[str, str]]],
-  content_html: str,
-  total_min: int = 2,
-  total_max: int = 4,
-  same_hub_ratio: float = 0.85,
-  min_score: float = 1.10,
+    hub_slug: str,
+    out_filename_html: str,
+    link_db: Dict[str, List[Tuple[str, str]]],
+    title: str = "",
+    description: str = "",
+    content_html: str = "",
+    total_min: int = 2,
+    total_max: int = 4,
+    same_hub_ratio: float = 0.85,
 ) -> List[Tuple[str, str]]:
-  hub_slug = normalize_slug(hub_slug)
-  out_filename_html = ensure_html_filename(out_filename_html)
+    hub_slug = normalize_slug(hub_slug)
+    out_filename_html = ensure_html_filename(out_filename_html)
 
-  rng = stable_rng(f"{hub_slug}/{out_filename_html}")
-  total = rng.choice([2, 3, 3, 4])
-  total = max(total_min, min(total_max, total))
+    rng = stable_rng(f"{hub_slug}/{out_filename_html}")
+    total = rng.choice([2, 3, 3, 4])
+    total = max(total_min, min(total_max, total))
 
-  same_target = max(0, min(total, int(round(total * same_hub_ratio))))
-  cross_target = total - same_target
+    same_target = max(0, min(total, int(round(total * same_hub_ratio))))
+    cross_target = total - same_target
 
-  self_href = f"/{hub_slug}/{out_filename_html}"
+    self_href = f"/{hub_slug}/{out_filename_html}"
+    used = {self_href}
 
-  heading_text = _extract_heading_text(content_html)
-  query_terms = _terms(heading_text)
-  if not query_terms:
-    query_terms = _terms(out_filename_html.replace(".html", ""))
+    headings = _extract_h2_h3_text(content_html)
+    slug_terms = (out_filename_html or "").replace(".html", "").replace("-", " ")
+    query_terms = _terms(" ".join([title or "", description or "", headings or "", slug_terms or ""]))
 
-  def scored_pool(h: str) -> List[Tuple[float, str, str]]:
-    pool: List[Tuple[float, str, str]] = []
-    for (t, fn) in link_db.get(h, []):
-      href = f"/{h}/{ensure_html_filename(fn)}"
-      if href == self_href:
-        continue
-      score = _overlap_score(query_terms, _terms(t))
-      if score <= 0.0:
-        continue
-      pool.append((score, t, href))
-    pool.sort(key=lambda x: (-x[0], x[1], x[2]))
-    return pool
+    # Gate: if the article has very few distinctive terms, allow 1-term overlaps; otherwise require 2.
+    min_overlap = 2
+    if len(set(query_terms)) < 6:
+        min_overlap = 1
+    min_score = 0.35
 
-  same_pool = scored_pool(hub_slug)
-  other_hubs = [h for (h, _t, _d) in HUBS if h != hub_slug]
-  cross_pool: List[Tuple[float, str, str]] = []
-  for h in other_hubs:
-    cross_pool.extend(scored_pool(h))
-  cross_pool.sort(key=lambda x: (-x[0], x[1], x[2]))
+    def scored_pool(h: str) -> List[Tuple[float, int, str, str]]:
+        pool: List[Tuple[float, int, str, str]] = []
+        for (t, fn) in link_db.get(h, []):
+            href = f"/{h}/{ensure_html_filename(fn)}"
+            if href in used:
+                continue
+            cand_terms = _terms(t)
+            inter = _overlap_count(query_terms, cand_terms)
+            if inter < min_overlap:
+                continue
+            score = _overlap_score(query_terms, cand_terms)
+            if score < min_score:
+                continue
+            pool.append((score, inter, t, href))
+        pool.sort(key=lambda x: (-x[0], -x[1], x[2], x[3]))
+        return pool
 
-  chosen: List[Tuple[str, str]] = []
-  used = {self_href}
+    chosen: List[Tuple[str, str]] = []
 
-  def take_from(pool: List[Tuple[float, str, str]], want: int) -> None:
-    for score, t, href in pool:
-      if len(chosen) >= total:
-        return
-      if want <= 0:
-        return
-      if href in used:
-        continue
-      if score < min_score:
-        continue
-      chosen.append((t, href))
-      used.add(href)
-      want -= 1
+    same_pool = scored_pool(hub_slug)
+    for score, inter, t, href in same_pool:
+        if len(chosen) >= same_target:
+            break
+        chosen.append((t, href))
+        used.add(href)
 
-  take_from(same_pool, same_target)
-  take_from(cross_pool, cross_target)
+    if cross_target > 0:
+        other_hubs = [h for (h, _t, _d) in HUBS if h != hub_slug]
+        cross_pool: List[Tuple[float, int, str, str]] = []
+        for h in other_hubs:
+            cross_pool.extend(scored_pool(h))
+        cross_pool.sort(key=lambda x: (-x[0], -x[1], x[2], x[3]))
+        for score, inter, t, href in cross_pool:
+            if len(chosen) >= (same_target + cross_target):
+                break
+            chosen.append((t, href))
+            used.add(href)
 
-  if len(chosen) < total:
-    take_from(same_pool, total - len(chosen))
-  if len(chosen) < total:
-    take_from(cross_pool, total - len(chosen))
+    return chosen[:total]
 
-  return chosen
-
+# ADDED: inline link slot support (keeps old behavior as fallback if slots are not present)
 INLINE_LINK_SLOTS = [
-  "{{INTERNAL_LINK_SLOT_1}}",
-  "{{INTERNAL_LINK_SLOT_2}}",
-  "{{INTERNAL_LINK_SLOT_3}}",
-  "{{INTERNAL_LINK_SLOT_4}}",
+    "{{INTERNAL_LINK_SLOT_1}}",
+    "{{INTERNAL_LINK_SLOT_2}}",
+    "{{INTERNAL_LINK_SLOT_3}}",
+    "{{INTERNAL_LINK_SLOT_4}}",
 ]
 
 def render_inline_link(title: str, href: str) -> str:
-  return f'<a href="{href}">{escape(title)}</a>'
+    return f'<a href="{href}">{escape(title)}</a>'
 
-def count_inline_link_slots(content_html: str) -> int:
-  html = content_html or ""
-  return sum(1 for s in INLINE_LINK_SLOTS if s in html)
-
-def inject_inline_links_via_slots(content_html: str, links: List[Tuple[str, str]]) -> str:
-  html = (content_html or "")
-  if not html:
-    return html
-
-  if not any(slot in html for slot in INLINE_LINK_SLOTS):
-    return html
-
-  for slot, (title, href) in zip(INLINE_LINK_SLOTS, links or []):
-    if slot in html:
-      html = html.replace(slot, render_inline_link(title, href), 1)
-
-  for slot in INLINE_LINK_SLOTS:
-    html = html.replace(slot, "")
-
-  return html
+def inject_inline_links_via_slots(content_html: str, links: List[Tuple[str, str]]) -> Tuple[str, int]:
+    html = (content_html or "")
+    if not html or not links:
+        return html, 0
+    inserted = 0
+    for slot, (title, href) in zip(INLINE_LINK_SLOTS, links):
+        if slot in html:
+            html = html.replace(slot, render_inline_link(title, href), 1)
+            inserted += 1
+    return html, inserted
 
 def inject_links_inside_article(content_html: str, links: List[Tuple[str, str]]) -> str:
-  return inject_inline_links_via_slots(content_html, links)
+    # Pipeline rule:
+    # - Never invent "Related guides" sections
+    # - Never dump link lists
+    # - Never inject links into random paragraphs
+    # - If slots are present, replace them; if slots are missing, do nothing
+    html = (content_html or "").rstrip()
+    if not html:
+        return html
+
+    has_slots = any(slot in html for slot in INLINE_LINK_SLOTS)
+    if not has_slots:
+        return html
+
+    html2, _inserted = inject_inline_links_via_slots(html, links or [])
+    for slot in INLINE_LINK_SLOTS:
+        html2 = html2.replace(slot, "")
+    return html2
 
 def card_html(title: str, blurb: str, href: str) -> str:
-  return f"""
+    return f"""
 <article class="card card-link">
   <a class="card-hit" href="{href}" aria-label="{escape(title)}"></a>
   <h2><a class="card-title-link" href="{href}">{escape(title)}</a></h2>
@@ -319,10 +325,10 @@ def card_html(title: str, blurb: str, href: str) -> str:
 """.strip()
 
 def homepage_body() -> str:
-  cards: List[str] = []
-  for slug, hub_title, desc in HUBS:
-    cards.append(card_html(hub_title, desc, f"/{slug}/"))
-  return f"""
+    cards: List[str] = []
+    for slug, hub_title, desc in HUBS:
+        cards.append(card_html(hub_title, desc, f"/{slug}/"))
+    return f"""
 <section class="hero">
   <h1>{escape(SITE_NAME)}</h1>
   <p class="subtitle">Fast, practical lawn and yard knowledge. No fluff.</p>
@@ -333,14 +339,14 @@ def homepage_body() -> str:
 """.strip()
 
 def hub_index_body(hub_slug: str, hub_title: str, hub_desc: str, items: List[Tuple[str, str]], article_lookup: Dict[Tuple[str, str], Dict[str, Any]]) -> str:
-  cards: List[str] = []
-  for t, fn_html in items:
-    fn_html = ensure_html_filename(fn_html)
-    href = f"/{hub_slug}/{fn_html}"
-    a = article_lookup.get((hub_slug, fn_html))
-    blurb = (a.get("card_blurb") or a.get("description") or hub_desc) if a else hub_desc
-    cards.append(card_html(t, blurb, href))
-  return f"""
+    cards: List[str] = []
+    for t, fn_html in items:
+        fn_html = ensure_html_filename(fn_html)
+        href = f"/{hub_slug}/{fn_html}"
+        a = article_lookup.get((hub_slug, fn_html))
+        blurb = (a.get("card_blurb") or a.get("description") or hub_desc) if a else hub_desc
+        cards.append(card_html(t, blurb, href))
+    return f"""
 <section class="hub-hero">
   <h1>{escape(hub_title)}</h1>
   <p class="subtitle">{escape(hub_desc)}</p>
@@ -351,205 +357,210 @@ def hub_index_body(hub_slug: str, hub_title: str, hub_desc: str, items: List[Tup
 """.strip()
 
 def load_article_json_files() -> List[Dict[str, Any]]:
-  objs: List[Dict[str, Any]] = []
-  if not PAGES_JSON_DIR.exists():
+    objs: List[Dict[str, Any]] = []
+    if not PAGES_JSON_DIR.exists():
+        return objs
+    for path in sorted(PAGES_JSON_DIR.rglob("*.json")):
+        try:
+            obj = json.loads(read_text(path))
+            if isinstance(obj, dict):
+                obj["_source_file"] = str(path)
+                objs.append(obj)
+        except Exception:
+            continue
     return objs
-  for path in sorted(PAGES_JSON_DIR.rglob("*.json")):
-    try:
-      obj = json.loads(read_text(path))
-      if isinstance(obj, dict):
-        obj["_source_file"] = str(path)
-        objs.append(obj)
-    except Exception:
-      continue
-  return objs
 
 def normalize_article_obj(obj: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-  hub_slug = normalize_slug(obj.get("hub_slug") or "")
-  filename = (obj.get("filename") or "").strip()
+    hub_slug = normalize_slug(obj.get("hub_slug") or "")
+    filename = (obj.get("filename") or "").strip()
 
-  output_path_old = (obj.get("output_path") or obj.get("outputPath") or "").strip().lstrip("/")
-  if not filename and output_path_old:
-    filename = output_path_old.split("/")[-1]
+    output_path_old = (obj.get("output_path") or obj.get("outputPath") or "").strip().lstrip("/")
+    if not filename and output_path_old:
+        filename = output_path_old.split("/")[-1]
 
-  if not filename:
-    src = (obj.get("_source_file") or "")
-    if src:
-      stem = Path(src).name
-      filename = stem
+    # If filename still missing, derive from JSON file name (pages_json/<hub>/<slug>.json)
+    if not filename:
+        src = (obj.get("_source_file") or "")
+        if src:
+            stem = Path(src).name  # e.g. how-grass-actually-grows.json
+            filename = stem
 
-  if not hub_slug:
-    if output_path_old and "/" in output_path_old:
-      hub_slug = normalize_slug(output_path_old.split("/")[0])
-    else:
-      src = (obj.get("_source_file") or "")
-      if src:
-        parts = Path(src).parts
-        if "pages_json" in parts:
-          i = parts.index("pages_json")
-          if i + 1 < len(parts):
-            hub_slug = normalize_slug(parts[i + 1])
-  if not hub_slug:
-    return None
+    if not hub_slug:
+        if output_path_old and "/" in output_path_old:
+            hub_slug = normalize_slug(output_path_old.split("/")[0])
+        else:
+            # Try derive from folder in pages_json: pages_json/<hub>/...
+            src = (obj.get("_source_file") or "")
+            if src:
+                parts = Path(src).parts
+                # find "pages_json" then next segment
+                if "pages_json" in parts:
+                    i = parts.index("pages_json")
+                    if i + 1 < len(parts):
+                        hub_slug = normalize_slug(parts[i + 1])
+    if not hub_slug:
+        return None
 
-  if not filename:
-    return None
+    if not filename:
+        return None
 
-  filename_html = ensure_html_filename(filename)
-  output_path_new = build_output_path(hub_slug, filename_html)
-  canonical = build_canonical(output_path_new)
+    filename_html = ensure_html_filename(filename)
+    output_path_new = build_output_path(hub_slug, filename_html)
+    canonical = build_canonical(output_path_new)
 
-  title = (obj.get("title") or "").strip()
-  description = (obj.get("description") or "").strip()
-  card_blurb = (obj.get("card_blurb") or obj.get("cardBlurb") or "").strip()
-  content_html = obj.get("content_html") or obj.get("contentHtml") or ""
+    title = (obj.get("title") or "").strip()
+    description = (obj.get("description") or "").strip()
+    card_blurb = (obj.get("card_blurb") or obj.get("cardBlurb") or "").strip()
+    content_html = obj.get("content_html") or obj.get("contentHtml") or ""
 
-  if not title or not isinstance(content_html, str) or not content_html.strip():
-    return None
+    if not title or not isinstance(content_html, str) or not content_html.strip():
+        return None
 
-  if not description:
-    description = title
-  if not card_blurb:
-    card_blurb = description
+    if not description:
+        description = title
+    if not card_blurb:
+        card_blurb = description
 
-  return {
-    "hub_slug": hub_slug,
-    "filename": filename_html,
-    "output_path": output_path_new,
-    "canonical": canonical,
-    "title": title,
-    "description": description,
-    "card_blurb": card_blurb,
-    "content_html": content_html.strip(),
-    "_source_file": obj.get("_source_file", ""),
-  }
+    return {
+        "hub_slug": hub_slug,
+        "filename": filename_html,
+        "output_path": output_path_new,
+        "canonical": canonical,
+        "title": title,
+        "description": description,
+        "card_blurb": card_blurb,
+        "content_html": content_html.strip(),
+        "_source_file": obj.get("_source_file", ""),
+    }
 
 def enforce_no_duplicate_outputs(articles: List[Dict[str, Any]]) -> None:
-  seen: Dict[Tuple[str, str], Dict[str, Any]] = {}
-  for a in articles:
-    key = (a["hub_slug"], a["filename"])
-    if key in seen:
-      raise SystemExit(
-        "Duplicate article JSON detected for the same output:\n"
-        f"Output: {a['hub_slug']}/{a['filename']}\n"
-        f"First JSON:  {seen[key].get('_source_file','(unknown)')}\n"
-        f"Second JSON: {a.get('_source_file','(unknown)')}\n"
-        "Fix: delete one JSON or change filename/hub_slug so outputs are unique."
-      )
-    seen[key] = a
+    seen: Dict[Tuple[str, str], Dict[str, Any]] = {}
+    for a in articles:
+        key = (a["hub_slug"], a["filename"])
+        if key in seen:
+            raise SystemExit(
+                "Duplicate article JSON detected for the same output:\n"
+                f"Output: {a['hub_slug']}/{a['filename']}\n"
+                f"First JSON:  {seen[key].get('_source_file','(unknown)')}\n"
+                f"Second JSON: {a.get('_source_file','(unknown)')}\n"
+                "Fix: delete one JSON or change filename/hub_slug so outputs are unique."
+            )
+        seen[key] = a
 
 def write_sitemap(urls: List[str], stats: Dict[str, int]) -> None:
-  clean = sorted({u.strip() for u in urls if u and u.strip()})
-  items = [f"  <url><loc>{escape(u)}</loc></url>" for u in clean]
-  xml = "\n".join([
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    *items,
-    "</urlset>",
-    "",
-  ])
-  write_if_changed(out_path(str(SITEMAP_PATH)), xml, stats)
+    clean = sorted({u.strip() for u in urls if u and u.strip()})
+    items = [f"  <url><loc>{escape(u)}</loc></url>" for u in clean]
+    xml = "\n".join([
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        *items,
+        "</urlset>",
+        "",
+    ])
+    write_if_changed(out_path(str(SITEMAP_PATH)), xml, stats)
 
 def write_search_index(items: List[Dict[str, str]], stats: Dict[str, int]) -> None:
-  payload = {"items": items, "generated": str(date.today())}
-  text = json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n"
-  write_if_changed(out_path(str(SEARCH_INDEX_PATH)), text, stats)
+    payload = {"items": items, "generated": str(date.today())}
+    text = json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n"
+    write_if_changed(out_path(str(SEARCH_INDEX_PATH)), text, stats)
 
 def main() -> int:
-  if not BASE_HTML_PATH.exists():
-    raise SystemExit("Missing base.html in repo root.")
+    if not BASE_HTML_PATH.exists():
+        raise SystemExit("Missing base.html in repo root.")
 
-  base_html = read_text(BASE_HTML_PATH)
-  gtag = load_gtag_snippet()
+    base_html = read_text(BASE_HTML_PATH)
+    gtag = load_gtag_snippet()
 
-  stats = {"written": 0, "skipped": 0}
+    stats = {"written": 0, "skipped": 0}
 
-  link_db = load_internal_link_db_from_csv()
-  if VERBOSE:
-    for h, rows in link_db.items():
-      log(f"link_db[{h}] = {len(rows)} (from {h}/filenames.csv)")
+    # Link DB must match YOUR real files: <hub>/filenames.csv
+    link_db = load_internal_link_db_from_csv()
+    if VERBOSE:
+        for h, rows in link_db.items():
+            log(f"link_db[{h}] = {len(rows)} (from {h}/filenames.csv)")
 
-  raw = load_article_json_files()
-  articles: List[Dict[str, Any]] = []
-  for o in raw:
-    a = normalize_article_obj(o)
-    if a:
-      articles.append(a)
+    raw = load_article_json_files()
+    articles: List[Dict[str, Any]] = []
+    for o in raw:
+        a = normalize_article_obj(o)
+        if a:
+            articles.append(a)
 
-  enforce_no_duplicate_outputs(articles)
+    enforce_no_duplicate_outputs(articles)
 
-  article_lookup: Dict[Tuple[str, str], Dict[str, Any]] = {}
-  for a in articles:
-    article_lookup[(a["hub_slug"], a["filename"])] = a
+    # Build lookup for hub cards to use real card_blurb if JSON exists
+    article_lookup: Dict[Tuple[str, str], Dict[str, Any]] = {}
+    for a in articles:
+        article_lookup[(a["hub_slug"], a["filename"])] = a
 
-  urls: List[str] = []
-  search_items: List[Dict[str, str]] = []
+    urls: List[str] = []
+    search_items: List[Dict[str, str]] = []
 
-  home_url = f"{SITE_BASE}/"
-  home_html = template_render(
-    base_html=base_html,
-    title=SITE_NAME,
-    description="Practical lawn, weed, irrigation, soil, and yard safety guides.",
-    canonical=home_url,
-    content_html=homepage_body(),
-    gtag=gtag,
-  )
-  write_if_changed(out_path("index.html"), home_html, stats)
-  urls.append(home_url)
-  search_items.append({"t": SITE_NAME, "u": "/", "d": "Homepage"})
-
-  for hub_slug, hub_title, hub_desc in HUBS:
-    items = read_hub_filenames_csv(hub_slug)
-    hub_url = f"{SITE_BASE}/{hub_slug}/"
-    hub_html = template_render(
-      base_html=base_html,
-      title=f"{hub_title} - {SITE_NAME}",
-      description=hub_desc,
-      canonical=hub_url,
-      content_html=hub_index_body(hub_slug, hub_title, hub_desc, items, article_lookup),
-      gtag=gtag,
+    # Homepage
+    home_url = f"{SITE_BASE}/"
+    home_html = template_render(
+        base_html=base_html,
+        title=SITE_NAME,
+        description="Practical lawn, weed, irrigation, soil, and yard safety guides.",
+        canonical=home_url,
+        content_html=homepage_body(),
+        gtag=gtag,
     )
-    write_if_changed(out_path(f"{hub_slug}/index.html"), hub_html, stats)
-    urls.append(hub_url)
-    search_items.append({"t": hub_title, "u": f"/{hub_slug}/", "d": hub_desc})
+    write_if_changed(out_path("index.html"), home_html, stats)
+    urls.append(home_url)
+    search_items.append({"t": SITE_NAME, "u": "/", "d": "Homepage"})
 
-  injected_count = 0
-  for a in articles:
-    slot_count = count_inline_link_slots(a["content_html"])
-    links: List[Tuple[str, str]] = []
-    if slot_count > 0:
-      links = choose_internal_links(
-        a["hub_slug"],
-        a["filename"],
-        link_db,
-        a["content_html"],
-        total_min=1,
-        total_max=min(4, slot_count),
-      )
-      if links:
-        injected_count += 1
+    # Hub pages
+    for hub_slug, hub_title, hub_desc in HUBS:
+        items = read_hub_filenames_csv(hub_slug)
+        hub_url = f"{SITE_BASE}/{hub_slug}/"
+        hub_html = template_render(
+            base_html=base_html,
+            title=f"{hub_title} - {SITE_NAME}",
+            description=hub_desc,
+            canonical=hub_url,
+            content_html=hub_index_body(hub_slug, hub_title, hub_desc, items, article_lookup),
+            gtag=gtag,
+        )
+        write_if_changed(out_path(f"{hub_slug}/index.html"), hub_html, stats)
+        urls.append(hub_url)
+        search_items.append({"t": hub_title, "u": f"/{hub_slug}/", "d": hub_desc})
 
-    content_with_links = inject_links_inside_article(a["content_html"], links)
+    # Article pages + internal link injection (slot-based only)
+    injected_count = 0
+    for a in articles:
+        links = choose_internal_links(
+            a["hub_slug"],
+            a["filename"],
+            link_db,
+            title=a["title"],
+            description=a["description"],
+            content_html=a["content_html"],
+        )
+        if links:
+            injected_count += 1
 
-    page_html = template_render(
-      base_html=base_html,
-      title=a["title"],
-      description=a["description"],
-      canonical=a["canonical"],
-      content_html=content_with_links,
-      gtag=gtag,
-    )
-    write_if_changed(out_path(a["output_path"]), page_html, stats)
-    urls.append(a["canonical"])
-    search_items.append({"t": a["title"], "u": f'/{a["output_path"]}', "d": a["description"]})
+        content_with_links = inject_links_inside_article(a["content_html"], links)
 
-  write_sitemap(urls, stats)
-  write_search_index(search_items, stats)
+        page_html = template_render(
+            base_html=base_html,
+            title=a["title"],
+            description=a["description"],
+            canonical=a["canonical"],
+            content_html=content_with_links,
+            gtag=gtag,
+        )
+        write_if_changed(out_path(a["output_path"]), page_html, stats)
+        urls.append(a["canonical"])
+        search_items.append({"t": a["title"], "u": f'/{a["output_path"]}', "d": a["description"]})
 
-  if VERBOSE:
-    print(f"json_found={len(raw)} articles_built={len(articles)} injected={injected_count} written={stats['written']} skipped={stats['skipped']}")
+    write_sitemap(urls, stats)
+    write_search_index(search_items, stats)
 
-  return 0
+    if VERBOSE:
+        print(f"json_found={len(raw)} articles_built={len(articles)} injected={injected_count} written={stats['written']} skipped={stats['skipped']}")
+
+    return 0
 
 if __name__ == "__main__":
-  raise SystemExit(main())
+    raise SystemExit(main())
