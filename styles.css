@@ -56,6 +56,26 @@ footer{
 a{color:inherit}
 a:hover{color:var(--primary)}
 
+/* Article/body links: make them obvious without touching nav/cards */
+main a:not(.nav-link):not(.card-title-link):not(.read-more):not(.card-hit){
+  color:var(--primary);
+  text-decoration:underline;
+  text-decoration-thickness:2px;
+  text-underline-offset:3px;
+}
+main a:not(.nav-link):not(.card-title-link):not(.read-more):not(.card-hit):visited{
+  color:var(--primary-2);
+}
+main a:not(.nav-link):not(.card-title-link):not(.read-more):not(.card-hit):hover{
+  color:var(--primary);
+  text-decoration-thickness:3px;
+}
+main a:not(.nav-link):not(.card-title-link):not(.read-more):not(.card-hit):focus-visible{
+  outline:2px solid rgba(34,197,94,0.65);
+  outline-offset:2px;
+  border-radius:6px;
+}
+
 /* Nav */
 .nav{
   display:flex;

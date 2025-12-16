@@ -224,7 +224,7 @@ def choose_internal_links(
 
     return chosen[:total]
 
-# ADDED: inline link slot support (keeps old behavior as fallback if slots are not present)
+# Inline link slot support (pipeline-driven: only replace slots; never create "Related guides")
 INLINE_LINK_SLOTS = [
     "{{INTERNAL_LINK_SLOT_1}}",
     "{{INTERNAL_LINK_SLOT_2}}",
@@ -235,56 +235,32 @@ INLINE_LINK_SLOTS = [
 def render_inline_link(title: str, href: str) -> str:
     return f'<a href="{href}">{escape(title)}</a>'
 
-def inject_inline_links_via_slots(content_html: str, links: List[Tuple[str, str]]) -> Tuple[str, int]:
+def count_inline_link_slots(content_html: str) -> int:
+    html = content_html or ""
+    return sum(1 for s in INLINE_LINK_SLOTS if s in html)
+
+def inject_inline_links_via_slots(content_html: str, links: List[Tuple[str, str]]) -> str:
     html = (content_html or "")
-    if not html or not links:
-        return html, 0
-    inserted = 0
-    for slot, (title, href) in zip(INLINE_LINK_SLOTS, links):
-        if slot in html:
-            html = html.replace(slot, render_inline_link(title, href), 1)
-            inserted += 1
-    return html, inserted
-
-def inject_links_inside_article(content_html: str, links: List[Tuple[str, str]]) -> str:
-    if not links:
-        return content_html
-
-    html = (content_html or "").rstrip()
     if not html:
         return html
 
-    # New preferred behavior: replace inline slots inside paragraphs
-    html2, inserted = inject_inline_links_via_slots(html, links)
-    if inserted > 0:
-        # Remove any unused slots so they never ship
-        for slot in INLINE_LINK_SLOTS:
-            html2 = html2.replace(slot, "")
-        return html2
+    # If slots are missing, do nothing and keep the article clean.
+    if not any(slot in html for slot in INLINE_LINK_SLOTS):
+        return html
 
-    # Fallback: keep your existing "Related guides" block behavior unchanged
-    li = "".join([f'<li><a href="{href}">{escape(title)}</a></li>' for (title, href) in links])
-    block = (
-        '<section class="related-guides">'
-        '<h2>Related guides</h2>'
-        '<ul class="related-list">' + li + '</ul>'
-        '</section>'
-    )
+    # Slots exist: replace sequentially when possible, then strip any leftover slot tokens.
+    for slot, (title, href) in zip(INLINE_LINK_SLOTS, links or []):
+        if slot in html:
+            html = html.replace(slot, render_inline_link(title, href), 1)
 
-    # Insert after first paragraph if possible
-    m = re.search(r"</p\s*>", html2, flags=re.IGNORECASE)
-    if m:
-        i = m.end()
-        return html2[:i] + "\n" + block + "\n" + html2[i:]
+    for slot in INLINE_LINK_SLOTS:
+        html = html.replace(slot, "")
 
-    # Else insert after first h1 if present
-    m = re.search(r"</h1\s*>", html2, flags=re.IGNORECASE)
-    if m:
-        i = m.end()
-        return html2[:i] + "\n" + block + "\n" + html2[i:]
+    return html
 
-    # Else append
-    return html2 + "\n" + block + "\n"
+def inject_links_inside_article(content_html: str, links: List[Tuple[str, str]]) -> str:
+    # Pipeline rule: never invent sections, never dump link lists, never inject into random paragraphs.
+    return inject_inline_links_via_slots(content_html, links)
 
 def card_html(title: str, blurb: str, href: str) -> str:
     return f"""
@@ -498,13 +474,21 @@ def main() -> int:
         urls.append(hub_url)
         search_items.append({"t": hub_title, "u": f"/{hub_slug}/", "d": hub_desc})
 
-    # Article pages + internal link injection
+    # Article pages + internal link injection (slot-based only)
     injected_count = 0
     for a in articles:
-        # IMPORTANT: link candidates come from filenames.csv across hubs
-        links = choose_internal_links(a["hub_slug"], a["filename"], link_db)
-        if links:
-            injected_count += 1
+        slot_count = count_inline_link_slots(a["content_html"])
+        links: List[Tuple[str, str]] = []
+        if slot_count > 0:
+            links = choose_internal_links(
+                a["hub_slug"],
+                a["filename"],
+                link_db,
+                total_min=1,
+                total_max=min(4, slot_count),
+            )
+            if links:
+                injected_count += 1
 
         content_with_links = inject_links_inside_article(a["content_html"], links)
 
