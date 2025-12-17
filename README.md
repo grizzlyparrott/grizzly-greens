@@ -1,2 +1,2 @@
 # grizzly-greens
-my golf site
+my outdoors site
