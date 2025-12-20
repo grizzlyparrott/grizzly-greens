@@ -36,9 +36,51 @@
     "hub": "lawn-basics"
   },
   {
+    "title": "Can Grass Adapt to Neglect",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/can-grass-adapt-to-neglect.html",
+    "description": "Grass can adapt to neglect only within limits. Survival depends on root depth, stress frequency, and whether recovery windows still exist.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Can Grass Grow Through Rocks or Gravel",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/can-grass-grow-through-rocks-or-gravel.html",
+    "description": "Grass can grow through rocks or gravel only when roots can reach soil, moisture remains available, and heat and compaction do not exceed tolerance limits.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Can Grass Grow in Compacted Soil",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/can-grass-grow-in-compacted-soil.html",
+    "description": "Grass can grow in compacted soil only temporarily. Long-term survival fails when oxygen flow, root expansion, and water movement remain restricted.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Can Grass Grow on Clay Soil",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/can-grass-grow-on-clay-soil.html",
+    "description": "Grass can grow on clay soil when oxygen movement, drainage, and root penetration stay functional. Failure happens when clay structure blocks recovery.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Can Grass Grow on Sandy Soil",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/can-grass-grow-on-sandy-soil.html",
+    "description": "Grass can grow on sandy soil when moisture retention, nutrient availability, and root contact remain stable. Failure occurs when water drains faster than roots can respond.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Can Grass Heal Itself",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/can-grass-heal-itself.html",
+    "description": "Grass can heal itself when crowns remain alive, roots can recover, and stress ends before energy reserves are exhausted.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "Can Grass Recover After Being Scalped",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/can-grass-recover-after-being-scalped.html",
     "description": "Scalping a lawn looks severe, but recovery is sometimes possible. The outcome depends on timing, severity, and overall lawn condition.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Can Grass Recover After Drought",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/can-grass-recover-after-drought.html",
+    "description": "Grass can recover after drought if crowns remain alive, roots regain access to moisture, and stress did not exceed the plant’s stored capacity.",
     "hub": "lawn-basics"
   },
   {
@@ -69,6 +111,12 @@
     "title": "Can You Walk on New Grass",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/can-you-walk-on-new-grass.html",
     "description": "Walking on new grass is possible only after roots anchor into the soil. Timing depends on growth stage, root strength, and how pressure affects recovery.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Common Lawn Care Myths That Kill Grass",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/common-lawn-care-myths-that-kill-grass.html",
+    "description": "Many lawns fail because common lawn care myths encourage practices that weaken roots, drain energy reserves, and prevent long-term recovery.",
     "hub": "lawn-basics"
   },
   {
@@ -114,6 +162,24 @@
     "hub": "lawn-basics"
   },
   {
+    "title": "How Grass Competes With Itself",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-grass-competes-with-itself.html",
+    "description": "Grass competes with itself when density, root overlap, and uneven resources force plants to outcompete neighbors for water, light, and space.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "How Grass Reacts to Temperature Swings",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-grass-reacts-to-temperature-swings.html",
+    "description": "Grass reacts to temperature swings by shifting metabolism, slowing recovery, and reallocating energy as it repeatedly adjusts between growth and stress.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "How Grass Responds to Stress",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-grass-responds-to-stress.html",
+    "description": "Grass responds to stress by altering growth patterns, slowing energy use, reallocating resources, and prioritizing survival over appearance.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "How Grass Roots Grow",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-grass-roots-grow.html",
     "description": "Grass roots grow in response to energy balance, moisture movement, and surface conditions. Root behavior explains why lawns succeed or fail under stress.",
@@ -129,6 +195,24 @@
     "title": "How Heat Reflecting Surfaces Affect Grass",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-heat-reflecting-surfaces-affect-grass.html",
     "description": "Heat reflecting surfaces alter temperature, moisture loss, and stress cycles in grass. These effects change growth patterns long before grass dies.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "How Long Grass Can Go Without Water",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-long-grass-can-go-without-water.html",
+    "description": "Grass can survive without water for limited periods depending on root depth, soil conditions, temperature, and stored energy reserves.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "How Long Grass Can Stay Dormant",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-long-grass-can-stay-dormant.html",
+    "description": "Grass can stay dormant as long as crowns remain alive, roots retain moisture access, and stress does not exhaust stored energy reserves.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "How Long Grass Lives as a Plant",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-long-grass-lives-as-a-plant.html",
+    "description": "Grass can live indefinitely as a plant when crowns remain alive, roots recover from stress, and growing conditions allow repeated regeneration.",
     "hub": "lawn-basics"
   },
   {
@@ -150,6 +234,12 @@
     "hub": "lawn-basics"
   },
   {
+    "title": "How Long a Lawn Typically Lasts",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-long-a-lawn-typically-lasts.html",
+    "description": "A lawn typically lasts as long as soil structure, root systems, and recovery capacity remain intact under repeated environmental and maintenance stress.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "How Often Grass Should Be Mowed",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-often-grass-should-be-mowed.html",
     "description": "Mowing too often or not often enough both cause problems. Knowing what your lawn shows over time helps set a steady mowing rhythm.",
@@ -159,6 +249,12 @@
     "title": "How Often Grass Should Be Replaced",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-often-grass-should-be-replaced.html",
     "description": "Grass does not last forever. Replacement becomes necessary when recovery stops working and decline outpaces regeneration.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "How Rainfall Patterns Affect Lawns",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-rainfall-patterns-affect-lawns.html",
+    "description": "Rainfall patterns affect lawns by controlling root depth, oxygen availability, disease pressure, and whether stress arrives faster than recovery.",
     "hub": "lawn-basics"
   },
   {
@@ -174,6 +270,12 @@
     "hub": "lawn-basics"
   },
   {
+    "title": "How Slope Affects Grass Growth",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-slope-affects-grass-growth.html",
+    "description": "Slope affects grass growth by changing water movement, soil stability, heat exposure, and how stress accumulates across the lawn.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "How Tall Grass Should Be Left After Mowing",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-tall-grass-should-be-left-after-mowing.html",
     "description": "Mowing height affects how fast grass fills in, how it handles heat and foot traffic, and how often thin or brown spots appear.",
@@ -183,6 +285,12 @@
     "title": "How Weather Affects Grass Growth",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-weather-affects-grass-growth.html",
     "description": "Grass growth responds directly to weather through temperature, moisture, and recovery cycles. Weather shapes growth speed, strength, and long-term lawn stability.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "How Wind Affects Grass Growth",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-wind-affects-grass-growth.html",
+    "description": "Wind affects grass growth by increasing water loss, altering temperature stress, limiting recovery, and changing how roots and leaves develop.",
     "hub": "lawn-basics"
   },
   {
@@ -204,9 +312,27 @@
     "hub": "lawn-basics"
   },
   {
+    "title": "How to Prepare Grass for Summer",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-to-prepare-grass-for-summer.html",
+    "description": "Preparing grass for summer means building root depth, reducing stress triggers, and stabilizing soil before heat and water demand spike.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "How to Prepare Grass for Winter",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-to-prepare-grass-for-winter.html",
+    "description": "Preparing grass for winter means protecting crowns, preserving root energy, and reducing stress before cold limits growth and recovery.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "How to Repair Bare Spots in a Lawn",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-to-repair-bare-spots-in-a-lawn.html",
     "description": "Bare spots return when the cause stays active. Repair only holds when soil, heat, and traffic conditions allow new grass to establish and survive.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "How to Start Over With a Dead Lawn",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/how-to-start-over-with-a-dead-lawn.html",
+    "description": "Starting over with a dead lawn means resetting soil structure, eliminating competition, and establishing grass during a recovery-friendly growth window.",
     "hub": "lawn-basics"
   },
   {
@@ -258,6 +384,12 @@
     "hub": "lawn-basics"
   },
   {
+    "title": "Signs a Lawn Needs to Be Replaced",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/signs-a-lawn-needs-to-be-replaced.html",
+    "description": "A lawn needs to be replaced when crowns are dead, roots cannot recover, and decline continues despite proper watering and seasonal conditions.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "Warm Season vs Cool Season Grasses Explained",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/warm-season-vs-cool-season-grasses-explained.html",
     "description": "Some lawns thrive in summer heat while others peak in cooler months. Knowing which type you have explains growth, color, and timing.",
@@ -267,6 +399,30 @@
     "title": "What Happens If You Cut Grass Too Short",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/what-happens-if-you-cut-grass-too-short.html",
     "description": "Cutting grass too short often makes a lawn decline slowly instead of improving it. The damage shows up over time, not right away.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "What Happens If You Never Mow Grass",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/what-happens-if-you-never-mow-grass.html",
+    "description": "Never mowing grass changes growth patterns, weakens crowns over time, and eventually reduces density as plants exhaust energy maintaining excess leaf tissue.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "What Happens to Grass Roots When You Mow",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/what-happens-to-grass-roots-when-you-mow.html",
+    "description": "Mowing affects grass roots by shifting energy allocation, slowing root growth, and triggering stress responses that influence long-term stability.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "What Makes Grass Turn Dark Green",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/what-makes-grass-turn-dark-green.html",
+    "description": "Grass turns dark green when chlorophyll production, nitrogen availability, and growth conditions align to favor dense, efficient photosynthesis.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "What Makes Grass Turn Light Green",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/what-makes-grass-turn-light-green.html",
+    "description": "Grass turns light green when chlorophyll production drops due to nutrient limits, root stress, poor soil conditions, or disrupted energy balance.",
     "hub": "lawn-basics"
   },
   {
@@ -282,6 +438,42 @@
     "hub": "lawn-basics"
   },
   {
+    "title": "When Grass Is Beyond Saving",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/when-grass-is-beyond-saving.html",
+    "description": "Grass is beyond saving when crowns are dead, roots have collapsed, and recovery capacity is permanently lost despite water or care.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "When a Lawn Reaches the End of Its Life",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/when-a-lawn-reaches-the-end-of-its-life.html",
+    "description": "A lawn reaches the end of its life when recovery capacity is exhausted, crowns fail to regenerate, and decline continues despite proper care.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Grass Becomes Stringy",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-becomes-stringy.html",
+    "description": "Grass becomes stringy when leaf growth outpaces density, blades elongate under stress, and thinning exposes long weak tissue with less support.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Grass Changes Texture Over Time",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-changes-texture-over-time.html",
+    "description": "Grass texture changes over time as stress, soil conditions, mowing pressure, and seasonal shifts alter leaf structure, density, and growth behavior.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Grass Declines Even With Care",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-declines-even-with-care.html",
+    "description": "Grass can decline even with care when recovery never fully occurs, roots weaken over time, and small stresses accumulate faster than the lawn can repair.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Grass Dies Along Driveways",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-dies-along-driveways.html",
+    "description": "Grass dies along driveways because heat reflection, soil compaction, and moisture loss overwhelm roots and prevent recovery at the edge.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "Why Grass Dies in Summer",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-dies-in-summer.html",
     "description": "Grass declines in summer when heat, drought stress, and root limitations push it past recovery. Understanding the failure mechanism is what prevents repeat loss.",
@@ -291,6 +483,12 @@
     "title": "Why Grass Dies in Winter",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-dies-in-winter.html",
     "description": "Grass fails in winter when cold stress, energy loss, and mowing damage push plants past recovery. Winter death is usually the result of earlier decisions.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Grass Fails in New Construction Yards",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-fails-in-new-construction-yards.html",
+    "description": "Grass fails in new construction yards because soil structure is destroyed, compaction is extreme, and recovery capacity is removed before grass is planted.",
     "hub": "lawn-basics"
   },
   {
@@ -312,6 +510,18 @@
     "hub": "lawn-basics"
   },
   {
+    "title": "Why Grass Grows in Clumps",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-grows-in-clumps.html",
+    "description": "Grass grows in clumps when stress, uneven recovery, and competition disrupt uniform growth and favor localized survival over even coverage.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Grass Looks Burned but Isn’t",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-looks-burned-but-isnt.html",
+    "description": "Grass can look burned when stress disrupts water balance and pigment production, even though tissue remains alive and capable of recovery.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "Why Grass Looks Different in Spring",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-looks-different-in-spring.html",
     "description": "Grass looks different in spring because growth resumes before roots fully stabilize. Seasonal energy shifts change color, texture, and density.",
@@ -330,15 +540,39 @@
     "hub": "lawn-basics"
   },
   {
+    "title": "Why Grass Near Fences Grows Differently",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-near-fences-grows-differently.html",
+    "description": "Grass near fences grows differently because shade, heat reflection, airflow changes, and moisture patterns alter stress and recovery along the boundary.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "Why Grass Near Sidewalks Dies",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-near-sidewalks-dies.html",
     "description": "Grass near sidewalks dies from heat reflection, soil compaction, and repeated stress. Pavement creates conditions grass struggles to recover from.",
     "hub": "lawn-basics"
   },
   {
+    "title": "Why Grass Near Trees Struggles",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-near-trees-struggles.html",
+    "description": "Grass near trees struggles because roots compete for water, light is reduced, and soil conditions favor the tree long before grass can recover.",
+    "hub": "lawn-basics"
+  },
+  {
     "title": "Why Grass Smells After Cutting",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-smells-after-cutting.html",
     "description": "The smell after cutting grass is a chemical response to injury. It reflects stress signals, moisture conditions, and how grass recovers after damage.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Grass Spreads Sideways",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-spreads-sideways.html",
+    "description": "Grass spreads sideways to survive stress, fill open space, and protect crowns by expanding laterally through stolons or rhizomes.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Grass Thins Out Over the Years",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-thins-out-over-the-years.html",
+    "description": "Grass thins out over the years when stress outpaces recovery, roots shrink, crowns weaken, and density loss accelerates further decline.",
     "hub": "lawn-basics"
   },
   {
@@ -352,5 +586,47 @@
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-grass-turns-yellow.html",
     "description": "Yellow grass usually develops gradually, not overnight. The timing and pattern help explain what the lawn is reacting to.",
     "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Lawns Decline Over Time",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-lawns-decline-over-time.html",
+    "description": "Lawns decline over time as soil compacts, roots weaken, energy reserves shrink, and recovery capacity erodes under repeated stress cycles.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Why Lawns Look Different Yard to Yard",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/lawn-basics/why-lawns-look-different-yard-to-yard.html",
+    "description": "Lawns look different yard to yard because soil history, microclimate, grass type, and stress exposure shape growth long before maintenance choices do.",
+    "hub": "lawn-basics"
+  },
+  {
+    "title": "Difference Between Topsoil and Native Soil",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/difference-between-topsoil-and-native-soil.html",
+    "description": "Topsoil and native soil are not the same thing. One is imported material, the other is the ground you already have, and mixing them can help or hurt.",
+    "hub": "soil-fertilizer"
+  },
+  {
+    "title": "How Soil Forms in Yards",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/how-soil-forms-in-yards.html",
+    "description": "Yard soil is not just dirt. It forms from what was there before construction, how the yard was built, and years of water, grass growth, traffic, and use.",
+    "hub": "soil-fertilizer"
+  },
+  {
+    "title": "What Lawn Soil Actually Is",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/what-lawn-soil-actually-is.html",
+    "description": "Lawn soil is the system that determines whether grass can survive at all. When soil structure fails, every surface fix becomes temporary.",
+    "hub": "soil-fertilizer"
+  },
+  {
+    "title": "Why Lawn Soil Degrades Over Time",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/why-lawn-soil-degrades-over-time.html",
+    "description": "Lawn soil does not stay the same year after year. Daily use, weather, water movement, and compaction slowly change soil until grass struggles to survive.",
+    "hub": "soil-fertilizer"
+  },
+  {
+    "title": "Why Soil Matters More Than Grass Type",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/why-soil-matters-more-than-grass-type.html",
+    "description": "Lawn success is not decided by grass type. Soil condition determines whether grass can root, recover from stress, and survive long term.",
+    "hub": "soil-fertilizer"
   }
 ]
