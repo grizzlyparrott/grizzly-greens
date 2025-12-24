@@ -686,7 +686,7 @@
   {
     "title": "How Lime Affects Lawn Soil",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/how-lime-affects-lawn-soil.html",
-    "description": "",
+    "description": "Lime affects lawn soil by changing pH, nutrient availability, and biological activity. Its impact depends on soil chemistry, structure, and application timing.",
     "hub": "soil-fertilizer"
   },
   {
@@ -800,7 +800,7 @@
   {
     "title": "How Soil Interacts With Watering",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/how-soil-interacts-with-watering.html",
-    "description": "Watering never acts on grass directly. Soil controls where water goes, how long it stays, and whether roots can actually use it.",
+    "description": "Watering does not act on grass directly. Soil determines where water moves, how long it remains available, and whether roots can actually use it.",
     "hub": "soil-fertilizer"
   },
   {
@@ -818,7 +818,7 @@
   {
     "title": "How Soil Temperature Affects Roots",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/how-soil-temperature-affects-roots.html",
-    "description": "Soil temperature controls how fast roots grow, breathe, and absorb nutrients. When soil is too cold or too hot, roots stall first and grass follows.",
+    "description": "Soil temperature influences how roots grow, respire, and absorb nutrients. When soil runs too cold or too hot, roots slow first and grass stress follows.",
     "hub": "soil-fertilizer"
   },
   {
@@ -1184,19 +1184,25 @@
   {
     "title": "Why Topdressing Helps Lawns",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/why-topdressing-helps-lawns.html",
-    "description": "Topdressing helps lawns by rebuilding soil structure at the surface. When air, water, and roots move better, grass regains strength and stability.",
+    "description": "Topdressing helps lawns by restoring usable soil near the surface. When movement returns, roots strengthen and grass stabilizes.",
     "hub": "soil-fertilizer"
   },
   {
     "title": "Why Uneven Soil Causes Lawn Problems",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/why-uneven-soil-causes-lawn-problems.html",
-    "description": "Uneven soil changes drainage, root depth, and stress patterns. As the ground varies, grass weakens in visible, repeatable ways across the lawn.",
+    "description": "Uneven soil alters water flow, rooting depth, and stress distribution. When the ground varies, lawn performance breaks into predictable weak zones.",
     "hub": "soil-fertilizer"
   },
   {
     "title": "Why Weak Soil Weakens Grass",
     "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/soil-fertilizer/why-weak-soil-weakens-grass.html",
-    "description": "Weak soil limits roots before grass shows stress. When soil can’t move air, water, or nutrients correctly, grass declines in predictable ways.",
+    "description": "Weak soil fails underground first. When air, water, and nutrients can’t move correctly through soil, grass loses strength long before color fades.",
     "hub": "soil-fertilizer"
+  },
+  {
+    "title": "Lawn Tools Homeowners Actually Need",
+    "url": "/C:/Users/grizz/OneDrive/Documents/GitHub/grizzly-greens/tools-safety/lawn-tools-homeowners-actually-need.html",
+    "description": "Most lawn problems come from excessive or poorly timed equipment use. Homeowners need fewer implements than expected, applied with restraint.",
+    "hub": "tools-safety"
   }
 ]
