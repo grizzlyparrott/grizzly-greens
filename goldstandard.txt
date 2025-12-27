@@ -285,3 +285,114 @@ PASTE SAMPLE HTML BELOW:
 </body>
 </html>
 
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>When a Lawn Needs Drainage Help</title>
+  <meta name="description" content="A lawn needs drainage help when water no longer clears within a normal window and recovery keeps falling behind. The warning signs show up before standing water becomes obvious.">
+  <link rel="canonical" href="https://grizzlygreens.net/watering-irrigation/when-a-lawn-needs-drainage-help.html">
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="When a Lawn Needs Drainage Help">
+  <meta name="twitter:description" content="A lawn needs drainage help when water no longer clears within a normal window and recovery keeps falling behind. The warning signs show up before standing water becomes obvious.">
+  <meta name="twitter:image" content="https://grizzlygreens.net/og-default.png">
+  <meta name="twitter:image:alt" content="Default preview image for GrizzlyGreens.net">
+
+  <meta property="og:locale" content="en_US">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="GrizzlyGreens.net">
+  <meta property="og:title" content="When a Lawn Needs Drainage Help">
+  <meta property="og:description" content="A lawn needs drainage help when water no longer clears within a normal window and recovery keeps falling behind. The warning signs show up before standing water becomes obvious.">
+  <meta property="og:url" content="https://grizzlygreens.net/watering-irrigation/when-a-lawn-needs-drainage-help.html">
+  <meta property="og:image" content="https://grizzlygreens.net/og-default.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Default preview image for GrizzlyGreens.net">
+
+  <meta property="article:published_time" content="2025-12-26T00:00:00-07:00">
+  <meta property="article:modified_time" content="2025-12-26T00:00:00-07:00">
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-MXR7KVMW56"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-MXR7KVMW56');
+  </script>
+</head>
+
+<body>
+<header class="site-header">
+  <nav class="nav">
+    <a href="/" class="nav-link">Home</a>
+    <a href="/lawn-basics/" class="nav-link">Lawn &amp; Grass Basics</a>
+    <a href="/weeds-pests/" class="nav-link">Weeds, Pests &amp; Disease</a>
+    <a href="/watering-irrigation/" class="nav-link">Watering, Irrigation &amp; Drainage</a>
+    <a href="/soil-fertilizer/" class="nav-link">Soil, Fertilizer &amp; Amendments</a>
+    <a href="/tools-safety/" class="nav-link">Tools &amp; Yard Safety</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h1>When a Lawn Needs Drainage Help</h1>
+
+  <h2>Drying stops matching normal expectations</h2>
+  <p>Every lawn has a typical drying rhythm.</p>
+  <p>When grass stays soft and dark well past that window, water is no longer moving the way it should. The issue is not how much water was applied, but how long it stays trapped.</p>
+
+  <h2>Recovery keeps getting slower after each wet period</h2>
+  <p>A healthy lawn rebounds quickly once moisture clears.</p>
+  <p>If each wet event leaves the turf weaker than the last, drainage has become the limiting factor. At that stage, normal adjustments stop making progress.</p>
+
+  <h2>Sloped areas begin failing unevenly</h2>
+  <p>Drainage trouble often shows up first where gravity already influences movement.</p>
+  <p>Water sheds off upper ground and overloads lower zones, creating mismatched stress patterns tied closely to <a href="/watering-irrigation/how-slope-affects-lawn-watering.html">How Slope Affects Lawn Watering</a>, where angle controls where moisture lingers.</p>
+
+  <h2>Watering changes stop producing results</h2>
+  <p>Cutting back, spacing cycles, or adjusting timing should improve conditions.</p>
+  <p>When none of those changes help, the lawn is no longer responding to watering because the problem sits below the surface. This disconnect mirrors situations described in <a href="/watering-irrigation/why-lawns-fail-despite-regular-watering.html">Why Lawns Fail Despite Regular Watering</a>.</p>
+
+  <h2>Seasonal transitions make problems worse instead of better</h2>
+  <p>Many lawns struggle most during shoulder seasons.</p>
+  <p>Fall is a common turning point because moisture remains longer while growth slows. Missed adjustments during that period often compound existing issues, which explains the patterns seen in <a href="/watering-irrigation/why-fall-watering-is-often-missed.html">Why Fall Watering Is Often Missed</a>.</p>
+
+  <h2>Soft ground starts changing the lawn’s shape</h2>
+  <p>Wet soil compresses easily under traffic.</p>
+  <p>Over time, this creates subtle low spots that collect even more water, locking the lawn into a worsening cycle that no schedule change can undo.</p>
+
+  <h2>Stress appears even during moderate weather</h2>
+  <p>When drainage is functioning, mild conditions give the lawn breathing room.</p>
+  <p>If stress persists despite reasonable temperatures and rainfall, water is staying where roots cannot tolerate it.</p>
+
+  <h2>Problem areas stop shrinking between events</h2>
+  <p>Temporary drainage issues contract during dry stretches.</p>
+  <p>When affected zones remain the same size or slowly expand, the soil has lost its ability to reset on its own.</p>
+
+  <h2>The lawn reaches a decision point</h2>
+  <p>At some point, the effort needed to correct drainage exceeds what the existing turf can handle.</p>
+  <p>This is when the conditions described in <a href="/watering-irrigation/when-water-problems-are-permanent.html">When Water Problems Are Permanent</a> start to apply, not because care was ignored, but because structure has already been lost.</p>
+
+  <h2>Drainage help becomes the only forward move</h2>
+  <p>Once water consistently outlasts recovery, drainage is no longer optional.</p>
+  <p>Without restoring movement below the surface, every other fix only delays decline instead of reversing it.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-links">
+    <a href="/about.html">About</a>
+    <a href="/disclaimer.html">Disclaimer</a>
+    <a href="/privacy.html">Privacy Policy</a>
+  </div>
+  <div class="footer-copy">© 2025 GrizzlyGreens.net</div>
+</footer>
+
+<script src="/search.js"></script>
+</body>
+</html>
