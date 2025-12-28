@@ -1,9 +1,10 @@
 You are writing fully-finished GrizzlyGreens.net articles as complete HTML pages.
 
 OUTPUT RULES (HARD):
-- Output ONLY the final rewritten article HTML. No commentary. No planning. No explanations.
+- Output ONLY the final written article HTML. No commentary. No planning. No explanations.
 - No bullet points, no numbered lists, no arrows, no shorthand list formatting.
 - Keep it in American English only.
+- Vary the number of sentences in each <p> and never use more than 40% of one length <p> in each article. Use a mix of 2, 3, and occasionally 4 sentence paragraphs depending on the thought being expressed. 
 - Use plain, direct, layman language. No “sciency” wording, no academic tone.
 - Each article must read like a single forward-moving argument: every section escalates the same core idea with new consequences, not restated points.
 - Do NOT repeat the same point in different wording across multiple sections.
@@ -47,16 +48,16 @@ INTERNAL LINK RULES (CRITICAL):
 
 STYLE TARGET:
 - Same vibe as the sample: calm, confident, blunt, practical.
-- Short paragraphs with momentum. No filler. No recaps.
+- Write paragraphs with momentum. No filler. No recaps.
 - Each H2 introduces a new escalation: consequence → bigger consequence → bigger consequence.
 
 WORKFLOW:
 1) Read the Title + filename + links.
 2) Draft an H2 structure similar to the sample’s pattern (around 10–12 H2 sections is fine unless the topic naturally needs fewer).
-3) Write 1–2 paragraphs per H2, keeping it tight and escalating.
+3) Write 2 paragraphs per H2, keeping it tight and escalating.
 4) Insert the provided links naturally (each exactly once).
 5) Output the final full HTML only.
-
+6) Vary paragraph lengths depending on the concept being explained. 
 PASTE SAMPLE HTML BELOW:
 
 
@@ -65,117 +66,6 @@ PASTE SAMPLE HTML BELOW:
 
 
 
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <title>How to Prepare Grass for Summer</title>
-  <meta name="description" content="Preparing grass for summer means building root depth, reducing stress triggers, and stabilizing soil before heat and water demand spike.">
-  <link rel="canonical" href="https://grizzlygreens.net/lawn-basics/how-to-prepare-grass-for-summer.html">
-
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="How to Prepare Grass for Summer">
-  <meta name="twitter:description" content="Preparing grass for summer means building root depth, reducing stress triggers, and stabilizing soil before heat and water demand spike.">
-  <meta name="twitter:image" content="https://grizzlygreens.net/og-default.png">
-  <meta name="twitter:image:alt" content="Default preview image for GrizzlyGreens.net">
-
-  <meta property="og:locale" content="en_US">
-  <meta property="og:type" content="article">
-  <meta property="og:site_name" content="GrizzlyGreens.net">
-  <meta property="og:title" content="How to Prepare Grass for Summer">
-  <meta property="og:description" content="Preparing grass for summer means building root depth, reducing stress triggers, and stabilizing soil before heat and water demand spike.">
-  <meta property="og:url" content="https://grizzlygreens.net/lawn-basics/how-to-prepare-grass-for-summer.html">
-  <meta property="og:image" content="https://grizzlygreens.net/og-default.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Default preview image for GrizzlyGreens.net">
-
-  <meta property="article:published_time" content="2025-12-19T00:00:00-07:00">
-  <meta property="article:modified_time" content="2025-12-19T00:00:00-07:00">
-
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-MXR7KVMW56"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-MXR7KVMW56');
-</script>
-</head>
-
-<body>
-  <header class="site-header">
-    <nav class="nav">
-      <a href="/" class="nav-link">Home</a>
-      <a href="/lawn-basics/" class="nav-link">Lawn &amp; Grass Basics</a>
-      <a href="/weeds-pests/" class="nav-link">Weeds, Pests &amp; Disease</a>
-      <a href="/watering-irrigation/" class="nav-link">Watering, Irrigation &amp; Drainage</a>
-      <a href="/soil-fertilizer/" class="nav-link">Soil, Fertilizer &amp; Amendments</a>
-      <a href="/tools-safety/" class="nav-link">Tools &amp; Yard Safety</a>
-    </nav>
-  </header>
-
-  <main class="container">
-    <h1>How to Prepare Grass for Summer</h1>
-
-<h2>Summer stress is decided before summer begins</h2>
-<p>Grass does not fail in summer because heat suddenly appears. Failure happens because roots, soil structure, and energy reserves were never built to handle prolonged demand.</p>
-<p>Preparation is about reducing how hard summer pushes the plant and increasing how much strain it can absorb before systems break down.</p>
-
-<h2>Root depth matters more than surface appearance</h2>
-<p>Deep, functional roots allow grass to access moisture that remains stable even as surface soil dries. Shallow roots force dependence on frequent watering and leave no buffer when conditions turn hostile.</p>
-<p>Anything that limits root growth in spring limits survival in summer.</p>
-
-<h2>Soil stability sets the upper limit of tolerance</h2>
-<p>Compacted or poorly structured soil restricts oxygen flow and water movement. During summer, those restrictions amplify heat stress by cutting off cooling and hydration at the same time.</p>
-<p>Once soil becomes the bottleneck, no amount of surface care can compensate.</p>
-
-<h2>Mowing decisions either protect or weaken grass</h2>
-<p>Short mowing increases soil temperature, speeds evaporation, and removes stored energy. Taller grass shades the surface and slows moisture loss.</p>
-<p>Summer preparation means avoiding cuts that reduce the plant’s ability to regulate heat and water.</p>
-
-<h2>Uneven terrain changes how grass experiences heat</h2>
-<p>Slopes shed water faster and dry unevenly, creating localized stress zones even when the rest of the lawn appears stable.</p>
-<p>How grade alters moisture retention and root behavior is explained in <a href="/lawn-basics/how-slope-affects-grass-growth.html">How Slope Affects Grass Growth</a>.</p>
-
-<h2>Clumping reveals underlying stress patterns</h2>
-<p>Grass that grows in clumps is often responding to inconsistent moisture, compacted soil, or root restriction. These patterns become more pronounced under summer stress.</p>
-<p>The mechanisms behind this behavior are detailed in <a href="/lawn-basics/why-grass-grows-in-clumps.html">Why Grass Grows in Clumps</a>.</p>
-
-<h2>Watering strategy matters more than volume</h2>
-<p>Frequent shallow watering trains roots to stay near the surface, increasing vulnerability. Infrequent deep watering encourages downward growth and builds drought resistance.</p>
-<p>Preparation means teaching the lawn how to survive scarcity before scarcity arrives.</p>
-
-<h2>Energy reserves determine recovery speed</h2>
-<p>Grass enters summer with a fixed amount of stored carbohydrates. Those reserves are spent on cooling, respiration, and basic survival.</p>
-<p>When reserves run out, decline accelerates even if watering continues.</p>
-
-<h2>Some lawns cannot be prepared anymore</h2>
-<p>Lawns with collapsed soil structure, dead crowns, or severe root loss cannot be conditioned for summer survival. At that point, stress exposure only confirms the failure.</p>
-<p>How to identify when recovery is no longer realistic is covered in <a href="/lawn-basics/when-grass-is-beyond-saving.html">When Grass Is Beyond Saving</a>.</p>
-
-<h2>Preparation is about reducing irreversible damage</h2>
-<p>Summer will slow growth and change appearance regardless of preparation. The goal is not perfection but survival with the ability to recover.</p>
-<p>Grass that enters summer strong rarely looks its best, but it avoids crossing the point of no return.</p>
-  </main>
-
-  <footer class="site-footer">
-    <div class="footer-links">
-      <a href="/about.html">About</a>
-      <a href="/disclaimer.html">Disclaimer</a>
-      <a href="/privacy.html">Privacy Policy</a>
-    </div>
-    <div class="footer-copy">© 2025 GrizzlyGreens.net</div>
-  </footer>
-
-  <script src="/search.js"></script>
-</body>
-</html>
 
 <!doctype html>
 <html lang="en">
