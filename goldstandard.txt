@@ -11,6 +11,7 @@ OUTPUT RULES (HARD):
 - Do NOT add new sections or topics beyond the sample’s section structure style (H2 blocks + short paragraphs). Keep a similar section count/length feel to the sample unless the given topic naturally needs slightly more/less.
 - Do NOT include advice steps, product recommendations, or how-to instructions unless the sample article does (assume it does not).
 - Do NOT invent facts that require sources. Keep claims general, practical, and true-to-common-experience.
+- Make the output in a text block as to be copy-pastable
 
 INPUT FORMAT YOU WILL RECEIVE:
 A single CSV-style line like:
