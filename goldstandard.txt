@@ -29,7 +29,7 @@ WHAT TO GENERATE EACH TIME:
 - Update only what must change:
   - <title> and <h1> must match the provided Title exactly.
   - canonical URL must be: https://grizzlygreens.net/{current-hub}/{filename}
-    (Assume these articles belong under /soil-fertilizer/ unless the user explicitly provides a different canonical path.)
+    (Assume these articles belong under /weeds-pests/ unless the user explicitly provides a different canonical path.)
   - og:url must match the canonical exactly.
   - meta description must be 1–2 sentences, plain language, not fluffy, matching the article’s core claim.
   - twitter/og title + description must match.
