@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from datetime import datetime, timezone
 import xml.etree.ElementTree as ET
 
 BASE_URL = "https://grizzlygreens.net"  # no trailing slash
@@ -28,8 +29,16 @@ EXCLUDE_DIR_NAMES = {
 def is_hub_dir(p: Path) -> bool:
     return p.is_dir() and p.name not in EXCLUDE_DIR_NAMES and not p.name.startswith(".")
 
-def collect_article_urls(site_root: Path) -> list[str]:
-    urls: list[str] = []
+def get_lastmod(file_path: Path) -> str:
+    """Get the last modification time of a file in W3C Datetime format."""
+    mtime = file_path.stat().st_mtime
+    dt = datetime.fromtimestamp(mtime, tz=timezone.utc)
+    # Use ISO format with 'Z' suffix for UTC
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+def collect_article_urls(site_root: Path) -> list[tuple[str, str]]:
+    """Returns list of (url, lastmod) tuples."""
+    urls: list[tuple[str, str]] = []
 
     # Hub folders are immediate children of the site root (e.g. lawn-basics/, tools-safety/, etc.)
     for hub in sorted(site_root.iterdir()):
@@ -45,19 +54,31 @@ def collect_article_urls(site_root: Path) -> list[str]:
 
             # Convert to URL path
             rel = html_path.relative_to(site_root).as_posix()
-            urls.append(f"{BASE_URL}/{rel}")
+            url = f"{BASE_URL}/{rel}"
+            lastmod = get_lastmod(html_path)
+            urls.append((url, lastmod))
 
-    # De-dupe while keeping sort stable
-    return sorted(set(urls))
+    # De-dupe while keeping sort stable (by URL)
+    seen = set()
+    unique_urls = []
+    for url, lastmod in urls:
+        if url not in seen:
+            seen.add(url)
+            unique_urls.append((url, lastmod))
+    
+    return sorted(unique_urls, key=lambda x: x[0])
 
-def write_sitemap(urls: list[str], out_path: Path) -> None:
+def write_sitemap(urls: list[tuple[str, str]], out_path: Path) -> None:
     ET.register_namespace("", "http://www.sitemaps.org/schemas/sitemap/0.9")
     urlset = ET.Element("{http://www.sitemaps.org/schemas/sitemap/0.9}urlset")
 
-    for u in urls:
+    for url, lastmod in urls:
         url_el = ET.SubElement(urlset, "{http://www.sitemaps.org/schemas/sitemap/0.9}url")
         loc_el = ET.SubElement(url_el, "{http://www.sitemaps.org/schemas/sitemap/0.9}loc")
-        loc_el.text = u
+        loc_el.text = url
+        
+        lastmod_el = ET.SubElement(url_el, "{http://www.sitemaps.org/schemas/sitemap/0.9}lastmod")
+        lastmod_el.text = lastmod
 
     tree = ET.ElementTree(urlset)
 
@@ -78,7 +99,7 @@ def main() -> int:
 
     print(f"Wrote {out_path} with {len(urls)} article URLs.")
     if len(urls) == 0:
-        print("WARNING: 0 URLs found. Are your hub folders under this script’s folder?")
+        print("WARNING: 0 URLs found. Are your hub folders under this script's folder?")
     return 0
 
 if __name__ == "__main__":
