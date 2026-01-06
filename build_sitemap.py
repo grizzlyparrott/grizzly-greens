@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 from pathlib import Path
 from datetime import datetime, timezone
 import xml.etree.ElementTree as ET
@@ -29,11 +30,43 @@ EXCLUDE_DIR_NAMES = {
 def is_hub_dir(p: Path) -> bool:
     return p.is_dir() and p.name not in EXCLUDE_DIR_NAMES and not p.name.startswith(".")
 
-def get_lastmod(file_path: Path) -> str:
-    """Get the last modification time of a file in W3C Datetime format."""
+def get_git_first_commit(file_path: Path, site_root: Path) -> str | None:
+    """Get the FIRST commit date for a file using Git (when it was originally added)."""
+    try:
+        # Get the first commit date for this file using --reverse
+        result = subprocess.run(
+            ["git", "log", "--reverse", "--format=%cI", "--", str(file_path)],
+            cwd=site_root,
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        if result.returncode == 0 and result.stdout.strip():
+            # Get the first line (earliest commit)
+            first_line = result.stdout.strip().split('\n')[0]
+            # Parse the ISO format date from git and convert to our format
+            dt = datetime.fromisoformat(first_line.replace('Z', '+00:00'))
+            return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        
+        return None
+    except (subprocess.SubprocessError, ValueError, OSError):
+        return None
+
+def get_file_modified(file_path: Path) -> str:
+    """Get the file system modification time as fallback."""
     mtime = file_path.stat().st_mtime
     dt = datetime.fromtimestamp(mtime, tz=timezone.utc)
-    return dt.strftime("%Y-%m-%dT%H:%M:%S+00:00")
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+def get_lastmod(file_path: Path, site_root: Path) -> str:
+    """Get last modification date, preferring Git history over file system."""
+    git_date = get_git_first_commit(file_path, site_root)
+    if git_date:
+        return git_date
+    
+    # Fallback to file system date if Git fails
+    return get_file_modified(file_path)
 
 def collect_article_urls(site_root: Path) -> list[tuple[str, str]]:
     """Returns list of (url, lastmod) tuples."""
@@ -54,7 +87,7 @@ def collect_article_urls(site_root: Path) -> list[tuple[str, str]]:
             # Convert to URL path
             rel = html_path.relative_to(site_root).as_posix()
             url = f"{BASE_URL}/{rel}"
-            lastmod = get_lastmod(html_path)
+            lastmod = get_lastmod(html_path, site_root)
             urls.append((url, lastmod))
 
     # De-dupe while keeping sort stable (by URL)
