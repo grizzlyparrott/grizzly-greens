@@ -33,8 +33,7 @@ def get_lastmod(file_path: Path) -> str:
     """Get the last modification time of a file in W3C Datetime format."""
     mtime = file_path.stat().st_mtime
     dt = datetime.fromtimestamp(mtime, tz=timezone.utc)
-    # Use ISO format with 'Z' suffix for UTC
-    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return dt.strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
 def collect_article_urls(site_root: Path) -> list[tuple[str, str]]:
     """Returns list of (url, lastmod) tuples."""
