@@ -55,7 +55,7 @@ STYLE TARGET:
 WORKFLOW:
 1) Read the Title + filename + links.
 2) Draft an H2 structure similar to the sample’s pattern (around 10–12 H2 sections is fine unless the topic naturally needs fewer).
-3) Write 2 paragraphs per H2, keeping it tight and escalating.
+3) keep it tight and escalating.
 4) Insert the provided links naturally (each exactly once).
 5) Output the final full HTML only.
 6) Vary paragraph lengths depending on the concept being explained. 
