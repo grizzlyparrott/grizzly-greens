@@ -1,6 +1,5 @@
 # build_sitemap.py
-# Builds sitemap.xml containing ONLY published article pages:
-# any .html file inside a hub folder, excluding index.html (and excluding root-level html).
+# Builds sitemap.xml for every public HTML page in the static site.
 
 from __future__ import annotations
 
@@ -13,10 +12,7 @@ import xml.etree.ElementTree as ET
 BASE_URL = "https://grizzlygreens.net"  # no trailing slash
 OUTPUT_FILENAME = "sitemap.xml"
 
-EXCLUDE_FILENAMES = {
-    "index.html",
-    "404.html",
-}
+EXCLUDE_FILENAMES = {"404.html"}
 
 EXCLUDE_DIR_NAMES = {
     ".git",
@@ -26,9 +22,6 @@ EXCLUDE_DIR_NAMES = {
     "node_modules",
     ".idea",
 }
-
-def is_hub_dir(p: Path) -> bool:
-    return p.is_dir() and p.name not in EXCLUDE_DIR_NAMES and not p.name.startswith(".")
 
 def get_git_first_commit(file_path: Path, site_root: Path) -> str | None:
     """Get the FIRST commit date for a file using Git (when it was originally added)."""
@@ -68,27 +61,31 @@ def get_lastmod(file_path: Path, site_root: Path) -> str:
     # Fallback to file system date if Git fails
     return get_file_modified(file_path)
 
-def collect_article_urls(site_root: Path) -> list[tuple[str, str]]:
-    """Returns list of (url, lastmod) tuples."""
+def path_to_url(html_path: Path, site_root: Path) -> str:
+    """Return the canonical public URL for a local HTML page."""
+    rel = html_path.relative_to(site_root).as_posix()
+    if rel == "index.html":
+        return f"{BASE_URL}/"
+    if rel.endswith("/index.html"):
+        return f"{BASE_URL}/{rel[:-len('index.html')]}"
+    return f"{BASE_URL}/{rel}"
+
+
+def collect_public_urls(site_root: Path) -> list[tuple[str, str]]:
+    """Returns sorted (url, lastmod) tuples for every published HTML page."""
     urls: list[tuple[str, str]] = []
 
-    # Hub folders are immediate children of the site root (e.g. lawn-basics/, tools-safety/, etc.)
-    for hub in sorted(site_root.iterdir()):
-        if not is_hub_dir(hub):
+    for html_path in sorted(site_root.rglob("*.html")):
+        if not html_path.is_file():
+            continue
+        if html_path.name in EXCLUDE_FILENAMES:
+            continue
+        if any(part in EXCLUDE_DIR_NAMES or part.startswith(".") for part in html_path.relative_to(site_root).parts):
             continue
 
-        # Only include .html files that actually exist inside the hub directory tree
-        for html_path in sorted(hub.rglob("*.html")):
-            if not html_path.is_file():
-                continue
-            if html_path.name in EXCLUDE_FILENAMES:
-                continue
-
-            # Convert to URL path
-            rel = html_path.relative_to(site_root).as_posix()
-            url = f"{BASE_URL}/{rel}"
-            lastmod = get_lastmod(html_path, site_root)
-            urls.append((url, lastmod))
+        url = path_to_url(html_path, site_root)
+        lastmod = get_lastmod(html_path, site_root)
+        urls.append((url, lastmod))
 
     # De-dupe while keeping sort stable (by URL)
     seen = set()
@@ -124,12 +121,12 @@ def write_sitemap(urls: list[tuple[str, str]], out_path: Path) -> None:
 
 def main() -> int:
     site_root = Path(__file__).resolve().parent
-    urls = collect_article_urls(site_root)
+    urls = collect_public_urls(site_root)
 
     out_path = site_root / OUTPUT_FILENAME
     write_sitemap(urls, out_path)
 
-    print(f"Wrote {out_path} with {len(urls)} article URLs.")
+    print(f"Wrote {out_path} with {len(urls)} public URLs.")
     if len(urls) == 0:
         print("WARNING: 0 URLs found. Are your hub folders under this script's folder?")
     return 0
