@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 from datetime import datetime, timezone
@@ -54,6 +55,16 @@ def get_file_modified(file_path: Path) -> str:
 
 def get_lastmod(file_path: Path, site_root: Path) -> str:
     """Get last modification date, preferring Git history over file system."""
+    # Editorial rebuilds carry an explicitly reviewed modification date.
+    # Use it instead of the legacy first-commit date, including before commit.
+    html = file_path.read_text(encoding="utf-8", errors="ignore")
+    if 'class="editorial-article"' in html:
+        match = re.search(
+            r'<meta\s+property="article:modified_time"\s+content="(\d{4}-\d{2}-\d{2})"',
+            html,
+        )
+        if match:
+            return match.group(1)
     git_date = get_git_first_commit(file_path, site_root)
     if git_date:
         return git_date

@@ -163,6 +163,20 @@ h2{
 p{margin:0 0 14px; color:rgba(229,231,235,0.92)}
 .subtitle{color:var(--muted)}
 
+/* Rebuilt editorial articles */
+.editorial-article{max-width:76ch;margin:0 auto}
+.editorial-article h2{margin:1.7em 0 .45em}
+.editorial-article h3{margin:1.25em 0 .35em}
+.editorial-article p,.editorial-article li{line-height:1.72}
+.editorial-article ul,.editorial-article ol{padding-left:1.45rem;margin:0 0 1.2rem}
+.editorial-article li+li{margin-top:.5rem}
+.editorial-article .answer{font-size:1.13rem;line-height:1.65;color:var(--text)}
+.editorial-article figure{margin:1.5rem 0 1.8rem}
+.editorial-article figure img{display:block;width:100%;height:auto;border-radius:var(--radius-sm);border:1px solid var(--border)}
+.editorial-article figcaption{font-size:.88rem;color:var(--muted);margin-top:.55rem}
+.editorial-article .note{padding:1rem 1.15rem;border-left:3px solid var(--primary);background:var(--surface-2);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.editorial-article .sources{border-top:1px solid var(--border);margin-top:2rem;padding-top:.5rem;font-size:.93rem}
+
 /* Hero / hub header (less “off”) */
 .hero, .hub-hero{
   padding:18px 0 12px;

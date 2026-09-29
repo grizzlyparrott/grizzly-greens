@@ -288,8 +288,8 @@
     "hub": "lawn-basics"
   },
   {
-    "title": "How to Fix Patchy Grass",
-    "description": "Patchy grass forms over time as conditions repeat. Fixing it means understanding why certain areas fall behind while others stay full.",
+    "title": "How to Fix Patchy Grass: Diagnose Before Reseeding | GrizzlyGreens",
+    "description": "Find the cause of thin or bare lawn patches, check soil and water, then choose a repair method for your grass and season.",
     "url": "/lawn-basics/how-to-fix-patchy-grass.html",
     "hub": "lawn-basics"
   },
@@ -636,6 +636,12 @@
     "hub": "soil-fertilizer"
   },
   {
+    "title": "Fix or Replace Lawn Soil? Diagnose the Limiting Problem | GrizzlyGreens",
+    "description": "Learn when lawn soil can be improved in place, when excavation may be warranted, and which tests to make before spending money.",
+    "url": "/soil-fertilizer/how-to-decide-between-fixing-or-replacing-soil.html",
+    "hub": "soil-fertilizer"
+  },
+  {
     "title": "How Amendments Change Soil Structure",
     "description": "Amendments change soil structure by changing how soil clumps, breathes, and holds water. If structure does not change, the lawn outcome won’t either.",
     "url": "/soil-fertilizer/how-amendments-change-soil-structure.html",
@@ -837,12 +843,6 @@
     "title": "How Sulfur Affects Lawn Soil",
     "description": "Sulfur affects lawn soil by changing how nutrients behave, not by feeding grass directly. Its impact depends on soil condition, time, and limits.",
     "url": "/soil-fertilizer/how-sulfur-affects-lawn-soil.html",
-    "hub": "soil-fertilizer"
-  },
-  {
-    "title": "How to Decide Between Fixing or Replacing Soil",
-    "description": "Some soil problems can be fixed, others can’t. The decision depends on depth, structure, and whether soil can still rebuild under roots.",
-    "url": "/soil-fertilizer/how-to-decide-between-fixing-or-replacing-soil.html",
     "hub": "soil-fertilizer"
   },
   {
@@ -1512,8 +1512,8 @@
     "hub": "tools-safety"
   },
   {
-    "title": "Signs a Mower Blade Is Dull",
-    "description": "Dull mower blades announce themselves through brown grass tips, uneven cuts, and increased engine strain that appears within days of the last sharpening.",
+    "title": "Signs a Mower Blade Is Dull—and What to Do | GrizzlyGreens",
+    "description": "Learn to distinguish torn grass tips from other mowing problems, inspect a mower blade safely, and decide when to sharpen or replace it.",
     "url": "/tools-safety/signs-a-mower-blade-is-dull.html",
     "hub": "tools-safety"
   },
@@ -2280,8 +2280,8 @@
     "hub": "watering-irrigation"
   },
   {
-    "title": "Why Morning Watering Is Usually Best",
-    "description": "Morning watering gives lawns time to absorb moisture and recover before stress builds. Water reaches roots more reliably while excess clears before oxygen becomes limited.",
+    "title": "Why Morning Watering Usually Works Best for Lawns | GrizzlyGreens",
+    "description": "Morning is a useful default for lawn irrigation, but soil moisture, sprinkler coverage, weather, and local rules matter more than a fixed clock time.",
     "url": "/watering-irrigation/why-morning-watering-is-usually-best.html",
     "hub": "watering-irrigation"
   },
@@ -2664,8 +2664,8 @@
     "hub": "weeds-pests"
   },
   {
-    "title": "What Causes Brown Patches in Lawns",
-    "description": "Brown patches form when grass loses recovery capacity in specific zones. The patch is the visible endpoint of stress that stayed concentrated long enough to overwhelm repair.",
+    "title": "What Causes Brown Patches in Lawns? Check the Pattern | GrizzlyGreens",
+    "description": "Brown lawn patches have several possible causes. Compare soil moisture, leaves, roots, and patch pattern before treating for a pest or disease.",
     "url": "/weeds-pests/what-causes-brown-patches-in-lawns.html",
     "hub": "weeds-pests"
   },
